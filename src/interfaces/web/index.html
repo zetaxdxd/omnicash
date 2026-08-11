@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniCash — Banco Digital</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" type="image/jpeg" href="/img/omnicash.jpg">
+</head>
+<body class="auth-body">
+
+  <main class="auth-panel">
+    <!-- Panel publicitario: toda la pantalla -->
+    <aside class="auth-hero">
+      <div class="hero-deco deco-uno"></div>
+      <div class="hero-deco deco-dos"></div>
+
+      <div class="hero-content">
+        <div class="hero-logo">
+          <img src="/img/omnicash.jpg" alt="OmniCash" class="hero-logo-img">
+          <span class="hero-logo-text">Omni<span>Cash</span></span>
+        </div>
+        <h2 class="hero-title">Tu banco digital,<br><em>sin sucursales y sin filas</em></h2>
+        <p class="hero-sub">
+          Abre tu cuenta en minutos con tu DNI. Carga dinero real por Yape,
+          transfiere al instante y gestiona tu seguridad como en un banco grande.
+        </p>
+
+        <!-- Tarjeta bancaria de demostración -->
+        <div class="bank-card">
+          <div class="bank-card-top">
+            <img src="/img/omnicash.jpg" alt="OmniCash" class="bank-card-logo">
+            <span>Banco Digital</span>
+          </div>
+          <div class="bank-card-chip"></div>
+          <div class="bank-card-number">6060 •••• •••• ••••</div>
+          <div class="bank-card-bottom">
+            <div><span>TITULAR</span><strong>OmniCash</strong></div>
+            <div><span>VÁLIDA</span><strong>∞</strong></div>
+          </div>
+        </div>
+
+        <div class="hero-badges">
+          <span class="hero-badge b1">📲 Cargas con Yape real</span>
+          <span class="hero-badge b2">🔐 Doble verificación</span>
+          <span class="hero-badge b3">🏦 CCI propia de 20 dígitos</span>
+        </div>
+      </div>
+
+      <p class="hero-foot">© 2026 OmniCash · Banco digital · Perú</p>
+    </aside>
+
+    <!-- Columna del formulario -->
+    <section class="auth-side">
+  <div class="auth-card">
+    <!-- Logotipo OmniCash (visible en pantallas pequeñas) -->
+    <div class="logo logo-card">
+      <img src="/img/omnicash.jpg" alt="OmniCash" class="logo-img">
+      <div class="logo-text">
+        <h1>Omni<span>Cash</span></h1>
+        <p>Banco digital, sin sucursales</p>
+      </div>
+    </div>
+
+    <!-- Mensaje de error o éxito -->
+    <div id="authMsg" class="auth-msg hidden"></div>
+
+    <!-- Formulario de inicio de sesión -->
+    <form id="loginForm" class="auth-form">
+      <h2>Inicia sesión</h2>
+      <p class="auth-hint">Acceso protegido. Los datos viajan cifrados.</p>
+      <label>Correo electrónico
+        <input type="email" id="loginEmail" placeholder="tucorreo@ejemplo.com" required>
+      </label>
+      <label>Contraseña
+        <span class="password-wrap">
+          <input type="password" id="loginPassword" placeholder="••••••••" required>
+          <button type="button" class="eye-btn" data-target="loginPassword" title="Mostrar contraseña">👁</button>
+        </span>
+      </label>
+      <label class="remember">
+        <input type="checkbox" id="rememberMe" checked>
+        Mantener mi sesión iniciada
+      </label>
+      <button type="submit" class="btn-primary">Entrar a mi cuenta</button>
+      <p class="auth-switch" style="margin-top:10px">
+        <a href="#" id="lnkRecuperar">¿Olvidaste tu contraseña?</a>
+      </p>
+    </form>
+
+    <!-- Recuperación de contraseña con correo de respaldo -->
+    <form id="recoverForm" class="auth-form hidden">
+      <h2>Recupera tu contraseña</h2>
+      <p class="auth-hint">Ingresa tu DNI y el <strong>correo de respaldo</strong> que registraste.
+        Te enviaremos un código allí.</p>
+      <label>DNI
+        <input type="text" id="recDni" placeholder="73148217" maxlength="9" required>
+      </label>
+      <label>Correo de respaldo
+        <input type="email" id="recBackupEmail" placeholder="respaldo@ejemplo.com" required>
+      </label>
+      <button type="submit" class="btn-primary">Enviar código a mi respaldo</button>
+      <button type="button" id="btnRecoverCancel" class="btn-outline">Volver al inicio de sesión</button>
+    </form>
+
+    <!-- Paso 2: código del respaldo + nueva contraseña -->
+    <form id="recoverConfirmForm" class="auth-form hidden">
+      <h2>Nueva contraseña</h2>
+      <p class="auth-hint">Ingresa el código que llegó a tu correo de respaldo y elige tu nueva contraseña.</p>
+      <label>Código de respaldo
+        <input type="text" id="recCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
+      </label>
+      <label>Nueva contraseña (mín. 8: mayúscula, minúscula y número)
+        <span class="password-wrap">
+          <input type="password" id="recPassword" placeholder="••••••••" required>
+          <button type="button" class="eye-btn" data-target="recPassword" title="Mostrar contraseña">👁</button>
+        </span>
+      </label>
+      <label>Repite la nueva contraseña
+        <span class="password-wrap">
+          <input type="password" id="recPassword2" placeholder="••••••••" required>
+          <button type="button" class="eye-btn" data-target="recPassword2" title="Mostrar contraseña">👁</button>
+        </span>
+      </label>
+      <button type="submit" class="btn-primary">Restablecer contraseña</button>
+      <button type="button" id="btnRecoverConfirmCancel" class="btn-outline">Volver al inicio de sesión</button>
+    </form>
+
+    <!-- Paso 2 del login: código de la app de autenticación (2FA) -->
+    <form id="faForm" class="auth-form hidden">
+      <h2>Verificación en dos pasos</h2>
+      <p class="auth-hint">Ingresa el código de 6 dígitos de tu app de autenticación (Google Authenticator, Authy...).</p>
+      <label>Código de la app
+        <input type="text" id="faCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
+      </label>
+      <button type="submit" class="btn-primary">Verificar e ingresar</button>
+      <button type="button" id="faCancelar" class="btn-outline">Volver</button>
+    </form>
+
+    <!-- Formulario de registro (apertura de cuenta) -->
+    <form id="registerForm" class="auth-form hidden">
+      <h2>Abre tu cuenta gratis</h2>
+      <p class="auth-hint">Tu identidad será verificada: el código llega a tu correo.</p>
+
+      <h3 class="field-group-title">Datos personales</h3>
+      <label>Apellido paterno
+        <input type="text" id="regPaterno" placeholder="Fernández" required>
+      </label>
+      <label>Apellido materno
+        <input type="text" id="regMaterno" placeholder="Llanos" required>
+      </label>
+      <label>Nombres
+        <input type="text" id="regNombres" placeholder="Elias" required>
+      </label>
+      <label>DNI (8 dígitos)
+        <input type="text" id="regDni" placeholder="73148217" maxlength="9" required>
+      </label>
+      <label>Dirección (calle, número, distrito)
+        <input type="text" id="regDireccion" placeholder="Av. Los Álamos 123 - Miraflores" required>
+      </label>
+
+      <h3 class="field-group-title">Datos de contacto</h3>
+      <label>Celular
+        <input type="tel" id="regPhone" placeholder="987654321" maxlength="9" required>
+      </label>
+      <label>Correo electrónico
+        <input type="email" id="regEmail" placeholder="tucorreo@ejemplo.com" required>
+      </label>
+      <label>Correo de respaldo <span class="auth-hint-inline">(necesario para recuperar tu cuenta si olvidas la contraseña)</span>
+        <input type="email" id="regBackupEmail" placeholder="respaldo@ejemplo.com" required>
+      </label>
+
+      <h3 class="field-group-title">Seguridad de acceso</h3>
+      <label>Contraseña (mín. 8 caracteres: mayúscula, minúscula y número)
+        <span class="password-wrap">
+          <input type="password" id="regPassword" placeholder="••••••••" required>
+          <button type="button" class="eye-btn" data-target="regPassword" title="Mostrar contraseña">👁</button>
+        </span>
+      </label>
+      <label>Repite la contraseña
+        <span class="password-wrap">
+          <input type="password" id="regPassword2" placeholder="••••••••" required>
+          <button type="button" class="eye-btn" data-target="regPassword2" title="Mostrar contraseña">👁</button>
+        </span>
+      </label>
+
+      <button type="submit" class="btn-primary">Continuar con el registro</button>
+    </form>
+
+    <!-- Verificación del correo con el código OTP -->
+    <form id="otpForm" class="auth-form hidden">
+      <h2>Verifica tu correo</h2>
+      <p class="auth-hint">Te enviamos un código de 6 dígitos a <strong id="otpCorreo">tu correo</strong>.
+        Sin esta verificación tu cuenta no se activa.</p>
+      <label>Código de verificación
+        <input type="text" id="otpCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
+      </label>
+      <button type="submit" class="btn-primary">Activar mi cuenta</button>
+      <button type="button" id="otpReenviar" class="btn-outline">Reenviar código</button>
+    </form>
+
+    <p class="auth-switch">
+      <span id="switchText">¿No tienes cuenta?</span>
+      <a href="#" id="switchLink">Regístrate aquí</a>
+    </p>
+  </div>
+  </section>
+  </main>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniCash — Tu banca digital</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" type="image/jpeg" href="/img/omnicash.jpg">
+</head>
+<body>
+  <!-- Barra de navegación principal -->
+  <nav class="navbar">
+    <div class="logo small">
+      <img src="/img/omnicash.jpg" alt="OmniCash" class="logo-img">
+      <div class="logo-text"><h1>Omni<span>Cash</span></h1></div>
+    </div>
+    <div class="nav-right">
+      <div class="nav-user-wrap" id="navUserWrap">
+        <span id="userName" class="nav-user">—</span>
+        <span class="nav-avatar" id="navAvatar">—</span>
+        <button id="btnConfig" class="icon-btn" title="Configuración de tu cuenta" aria-label="Configuración de la cuenta">⚙️</button>
+
+        <!-- Menú desplegable de configuración -->
+        <div id="confMenu" class="conf-menu hidden">
+          <div class="conf-head">
+            <strong id="confName">—</strong>
+            <span id="confEmail">—</span>
+            <span class="conf-role" id="confRole">—</span>
+          </div>
+          <div class="conf-divider"></div>
+          <button class="conf-item" data-accion="datos">👤 Mis datos personales</button>
+          <button class="conf-item" data-accion="numero">📱 Cambiar mi número</button>
+          <button class="conf-item" data-accion="password">🔑 Cambiar contraseña</button>
+          <button class="conf-item" data-accion="seguridad">🛡️ Seguridad (2FA y sesiones)</button>
+          <button class="conf-item" data-accion="cerrarSesiones">📴 Cerrar otras sesiones</button>
+          <div class="conf-divider"></div>
+          <button class="conf-item conf-salir" data-accion="salir">🚪 Salir</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <!-- Vista del cliente: banca digital -->
+    <section id="clienteView" class="hidden">
+      <div class="cards-grid">
+        <!-- Tarjeta principal con saldo -->
+        <div class="card card-saldo">
+          <p class="card-label">Saldo disponible</p>
+          <h2 class="saldo" id="saldo">0.00</h2>
+          <p class="card-sub" id="numeroCuenta">CCI: —</p>
+          <p class="card-sub" id="cuentaEstado">Estado: —</p>
+        </div>
+        <!-- Tarjeta de retiro en cajero -->
+        <div class="card">
+          <h3>🏧 Retiro en cajero</h3>
+          <p class="card-sub">Usa cualquier cajero de la red. Comisión: 5%.</p>
+          <form id="retiroForm">
+            <input type="number" id="retiroMonto" placeholder="Monto a retirar" min="1" step="0.01" required>
+            <button class="btn-primary" type="submit">Retirar</button>
+          </form>
+          <p class="card-sub" id="retiroMsg"></p>
+        </div>
+        <!-- Tarjeta de transferencia -->
+        <div class="card">
+          <h3>↔️ Transferencia</h3>
+          <p class="card-sub">Envía créditos a otra CCI (20 dígitos).</p>
+          <form id="transferForm">
+            <input type="text" id="transferDestino" placeholder="CCI destino (20 dígitos)" maxlength="20" required>
+            <input type="number" id="transferMonto" placeholder="Monto" min="0.01" step="0.01" required>
+            <button class="btn-primary" type="submit">Transferir</button>
+          </form>
+          <p class="card-sub" id="transferMsg"></p>
+        </div>
+        <!-- Tarjeta de depósito por Yape -->
+        <div class="card">
+          <h3>📲 Depósito por Yape</h3>
+          <p class="card-sub">Paga desde tu app Yape y el banco confirmará tu carga (envías dinero de verdad).</p>
+          <form id="yapeForm">
+            <input type="number" id="yapeMonto" placeholder="Monto a cargar (S/)" min="1" step="0.01" required>
+            <input type="tel" id="yapeCelular" placeholder="Tu celular Yape (9 dígitos)" maxlength="9" required>
+            <input type="text" id="yapeOperacion" placeholder="Código de aprobación (el que te muestra Yape al pagar)" maxlength="40" required>
+            <button class="btn-primary" type="submit">Solicitar carga</button>
+          </form>
+          <p class="card-sub" id="yapeMsg"></p>
+          <div class="card" style="margin-top:8px">
+            <h4 style="margin:0 0 8px">Tus solicitudes</h4>
+            <table class="tabla">
+              <thead><tr><th>Ref</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead>
+              <tbody id="yapeHistorialBody"><tr><td colspan="4">Sin solicitudes</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial de movimientos -->
+      <div class="card">
+        <h3>📜 Últimos movimientos</h3>
+        <table class="tabla">
+          <thead>
+            <tr><th>Fecha</th><th>Operación</th><th>Descripción</th><th>Monto</th></tr>
+          </thead>
+          <tbody id="movimientosBody">
+            <tr><td colspan="4">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Seguridad de la cuenta -->
+      <div class="card" id="seguridadCard">
+        <h3>🛡️ Seguridad de tu cuenta</h3>
+
+        <div id="seg2fa">
+          <!-- Estado actual (se rellena con JS) -->
+        </div>
+
+        <h4 style="margin:18px 0 8px">Sesiones activas</h4>
+        <table class="tabla">
+          <thead>
+            <tr><th>Dispositivo</th><th>IP</th><th>Última actividad</th><th>Actual</th><th></th></tr>
+          </thead>
+          <tbody id="sesionesBody"></tbody>
+        </table>
+        <button id="btnCerrarSesiones" class="btn-outline" style="margin-top:10px">Cerrar sesión en otros dispositivos</button>
+        <p class="card-sub" id="segMsg"></p>
+      </div>
+    </section>
+
+    <!-- Vista del trabajador: soporte -->
+    <section id="trabajadorView" class="hidden">
+      <h2>👷 Panel de soporte</h2>
+      <div class="card">
+        <h3>Realizar depósito a un cliente</h3>
+        <form id="depositoForm">
+          <input type="text" id="depositoCuenta" placeholder="CCI destino (20 dígitos)" maxlength="20" required>
+          <input type="number" id="depositoMonto" placeholder="Monto" min="0.01" step="0.01" required>
+          <button class="btn-primary" type="submit">Depositar</button>
+        </form>
+        <p class="card-sub" id="depositoMsg"></p>
+      </div>
+      <div class="card">
+        <h3>Clientes del banco</h3>
+        <table class="tabla">
+          <thead>
+            <tr><th>Nombre</th><th>Correo</th><th>Cuenta</th><th>Saldo</th><th>Estado</th></tr>
+          </thead>
+          <tbody id="clientesBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Vista del administrador supremo -->
+    <section id="adminView" class="hidden">
+      <h2>👑 Administración del banco</h2>
+
+      <!-- Métricas globales -->
+      <div class="cards-grid">
+        <div class="card metric"><span id="mUsuarios">0</span><p>Usuarios</p></div>
+        <div class="card metric"><span id="mClientes">0</span><p>Clientes</p></div>
+        <div class="card metric"><span id="mTrabajadores">0</span><p>Trabajadores</p></div>
+        <div class="card metric"><span id="mCuentas">0</span><p>Cuentas</p></div>
+        <div class="card metric"><span id="mActivos">0.00</span><p>Créditos en el banco</p></div>
+      </div>
+
+      <!-- Gestión de usuarios -->
+      <div class="card">
+        <h3>Usuarios</h3>
+        <table class="tabla">
+          <thead>
+            <tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Cuenta</th><th>Saldo</th><th>Acciones</th></tr>
+          </thead>
+          <tbody id="usuariosBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Depósitos Yape pendientes (dinero real) -->
+      <div class="card">
+        <h3>📲 Depósitos Yape por confirmar</h3>
+        <p class="card-sub">Acredita SOLO cuando el dinero ya llegó a tu Yape (921901846). Confirmar exige tu contraseña + código enviado a tu correo.</p>
+        <table class="tabla">
+          <thead>
+            <tr><th>Ref</th><th>Cliente</th><th>DNI</th><th>Monto</th><th>Celular</th><th>Código aprobación</th><th>Fecha</th><th></th></tr>
+          </thead>
+          <tbody id="yapePendientesBody"><tr><td colspan="8">Sin solicitudes pendientes</td></tr></tbody>
+        </table>
+        <p class="card-sub" id="yapeAdminMsg"></p>
+      </div>
+
+      <!-- Crear trabajador -->
+      <div class="card">
+        <h3>➕ Contratar trabajador</h3>
+        <form id="crearTrabajadorForm">
+          <input type="text" id="twName" placeholder="Nombre completo" required>
+          <input type="email" id="twEmail" placeholder="correo@omnicash.com" required>
+          <input type="password" id="twPassword" placeholder="Contraseña" required>
+          <button class="btn-primary" type="submit">Crear trabajador</button>
+        </form>
+        <p class="card-sub" id="twMsg"></p>
+      </div>
+
+      <!-- Auditoría -->
+      <div class="card">
+        <h3>🛡️ Registro de auditoría</h3>
+        <table class="tabla">
+          <thead>
+            <tr><th>Fecha</th><th>Acción</th><th>Detalle</th></tr>
+          </thead>
+          <tbody id="auditoriaBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de reautenticación para operaciones sensibles -->
+  <div id="reauthModal" class="modal hidden">
+    <div class="modal-box">
+      <h3>🔐 Verifica tu identidad</h3>
+      <p class="card-sub" id="reauthInfo">Esta operación es de monto alto. Confirma que eres tú.</p>
+      <label id="reauthLabel">Contraseña
+        <input type="password" id="reauthValue" placeholder="••••••••" autocomplete="current-password">
+      </label>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="reauthAceptar" class="btn-primary">Confirmar</button>
+        <button id="reauthCancelar" class="btn-outline">Cancelar</button>
+      </div>
+      <p class="card-sub" id="reauthMsg"></p>
+    </div>
+  </div>
+
+  <!-- Modal: mis datos personales / cambiar número -->
+  <div id="datosModal" class="modal hidden">
+    <div class="modal-box">
+      <h3 id="datosTitulo">👤 Mis datos personales</h3>
+      <p class="card-sub" id="datosInfo">Actualiza tus datos. Te enviaremos un código a tu correo para confirmar el cambio.</p>
+
+      <div id="datosCampos">
+        <label>Apellido paterno
+          <input type="text" id="datosPaterno" required>
+        </label>
+        <label>Apellido materno
+          <input type="text" id="datosMaterno" required>
+        </label>
+        <label>Nombres
+          <input type="text" id="datosNombres" required>
+        </label>
+        <label>DNI (8 dígitos)
+          <input type="text" id="datosDni" maxlength="9" required>
+        </label>
+        <label>Dirección (calle, número, distrito)
+          <input type="text" id="datosDireccion" required>
+        </label>
+        <label>Celular (nuevo número Yape/cuenta)
+          <input type="tel" id="datosPhone" maxlength="9" placeholder="987654321" required>
+        </label>
+      </div>
+
+      <div id="datosCodigoZona" class="hidden">
+        <label>Código enviado a tu correo
+          <input type="text" id="datosCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
+        </label>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="datosEnviar" class="btn-primary">Enviar código a mi correo</button>
+        <button id="datosAplicar" class="btn-primary hidden">Guardar cambios</button>
+        <button id="datosCancelar" class="btn-outline">Cancelar</button>
+      </div>
+      <p class="card-sub" id="datosMsg"></p>
+    </div>
+  </div>
+
+  <!-- Modal: cambiar contraseña -->
+  <div id="passModal" class="modal hidden">
+    <div class="modal-box">
+      <h3>🔑 Cambiar contraseña</h3>
+      <p class="card-sub">Para proteger tu cuenta, al cambiar la contraseña se cerrarán tus otras sesiones.</p>
+      <label>Contraseña actual
+        <input type="password" id="passActual" placeholder="••••••••" autocomplete="current-password" required>
+      </label>
+      <label>Contraseña nueva (mín. 8: mayúscula, minúscula y número)
+        <input type="password" id="passNueva" placeholder="••••••••" autocomplete="new-password" required>
+      </label>
+      <label>Repite la contraseña nueva
+        <input type="password" id="passNueva2" placeholder="••••••••" autocomplete="new-password" required>
+      </label>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button id="passGuardar" class="btn-primary">Cambiar contraseña</button>
+        <button id="passCancelar" class="btn-outline">Cancelar</button>
+      </div>
+      <p class="card-sub" id="passMsg"></p>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
