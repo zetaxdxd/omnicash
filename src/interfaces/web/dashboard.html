@@ -208,11 +208,54 @@
         <p class="card-sub" id="twMsg"></p>
       </div>
 
-      <!-- Auditoría (ventana aparte) -->
+      <!-- Auditoría -->
       <div class="card">
         <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Registro de auditoría</h3>
-        <p class="card-sub">La traza de acciones sensibles del banco se revisa en una ventana exclusiva, dividida por antigüedad (últimos 15 días y últimos 3 meses).</p>
+        <p class="card-sub">La traza de acciones sensibles del banco, dividida por antigüedad (últimos 15 días y últimos 3 meses).</p>
         <button class="btn-outline" id="btnAuditoria" type="button">Ver registro de auditoría</button>
+      </div>
+    </section>
+
+    <!-- Vista del registro de auditoría (misma página) -->
+    <section id="auditoriaView" class="hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+        <h2>Registro de auditoría del banco</h2>
+        <button class="btn-outline" id="btnVolverPanel" type="button">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          Volver al panel
+        </button>
+      </div>
+      <p class="card-sub">Traza de acciones sensibles: iniciar sesión, transferir, retirar, bloquear cuentas y más.</p>
+
+      <!-- Filtro rápido por texto -->
+      <div class="card">
+        <label for="filtroAuditoria">Filtrar por acción, detalle o actor
+          <input type="text" id="filtroAuditoria" placeholder="Ej: TRANSFERENCIA, RETIRO, BLOQUEO...">
+        </label>
+      </div>
+
+      <!-- Bloque 1: últimos 15 días -->
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Últimos 15 días</h3>
+        <p class="card-sub" id="resumen15"></p>
+        <table class="tabla">
+          <thead>
+            <tr><th>Fecha</th><th>Acción</th><th>Detalle</th><th>Actor</th></tr>
+          </thead>
+          <tbody id="auditoria15"></tbody>
+        </table>
+      </div>
+
+      <!-- Bloque 2: máximo últimos 3 meses -->
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Últimos 3 meses (histórico)</h3>
+        <p class="card-sub" id="resumen3m"></p>
+        <table class="tabla">
+          <thead>
+            <tr><th>Fecha</th><th>Acción</th><th>Detalle</th><th>Actor</th></tr>
+          </thead>
+          <tbody id="auditoria3m"></tbody>
+        </table>
       </div>
     </section>
   </main>

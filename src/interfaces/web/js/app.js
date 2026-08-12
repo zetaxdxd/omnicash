@@ -680,12 +680,74 @@ async function cargarDashboardAdmin() {
   }
 }
 
+// ---------- Registro de auditoría (vista interna) ----------
+let auditoriaRecientes = [];
+let auditoriaHistorico = [];
+
+function escaparHtml(texto) {
+  return String(texto ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+/** Pinta un bloque de auditoría respetando el filtro de texto */
+function pintarBloque(tbodyId, resumenId, registros, filtro) {
+  const texto = filtro.toLowerCase().trim();
+  const lista = texto
+    ? registros.filter((r) =>
+        (r.action || '').toLowerCase().includes(texto) ||
+        (r.detail || '').toLowerCase().includes(texto) ||
+        (r.actor_name || '').toLowerCase().includes(texto)
+      )
+    : registros;
+  $(resumenId).textContent = `${lista.length} de ${registros.length} registro(s)`;
+  $(tbodyId).innerHTML = lista.map((a) => `
+    <tr>
+      <td>${formatoFecha(a.created_at)}</td>
+      <td><span class="badge">${escaparHtml(a.action)}</span></td>
+      <td>${escaparHtml(a.detail)}</td>
+      <td>${escaparHtml(a.actor_name || 'sistema')}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="card-sub">Sin registros para este bloque.</td></tr>';
+}
+
+/** Carga los dos bloques de auditoría desde el servidor */
+async function cargarAuditoria() {
+  try {
+    const data = await peticion('/admin/auditoria');
+    auditoriaRecientes = data.recientes || [];
+    auditoriaHistorico = data.historico || [];
+    const filtro = $('filtroAuditoria').value;
+    pintarBloque('auditoria15', 'resumen15', auditoriaRecientes, filtro);
+    pintarBloque('auditoria3m', 'resumen3m', auditoriaHistorico, filtro);
+  } catch (err) {
+    $('resumen15').textContent = err.message;
+    $('resumen3m').textContent = err.message;
+  }
+}
+
+$('filtroAuditoria').addEventListener('input', () => {
+  const filtro = $('filtroAuditoria').value;
+  pintarBloque('auditoria15', 'resumen15', auditoriaRecientes, filtro);
+  pintarBloque('auditoria3m', 'resumen3m', auditoriaHistorico, filtro);
+});
+
 /** Configura los controles administrativos */
 function configurarAdmin() {
-  // Registro de auditoría: ventana exclusiva del super admin
+  // Registro de auditoría: se muestra en la misma página (sin abrir otra ventana)
   const btnAuditoria = document.getElementById('btnAuditoria');
   if (btnAuditoria) {
-    btnAuditoria.addEventListener('click', () => window.open('auditoria.html', '_blank'));
+    btnAuditoria.addEventListener('click', () => {
+      $('adminView').classList.add('hidden');
+      $('auditoriaView').classList.remove('hidden');
+      cargarAuditoria();
+      window.scrollTo({ top: 0 });
+    });
+  }
+  const btnVolverPanel = document.getElementById('btnVolverPanel');
+  if (btnVolverPanel) {
+    btnVolverPanel.addEventListener('click', () => {
+      $('auditoriaView').classList.add('hidden');
+      $('adminView').classList.remove('hidden');
+    });
   }
 
   // Autocompletado de identidad del trabajador (DNI → RENIEC)
