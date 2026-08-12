@@ -146,20 +146,16 @@ $('regDni').addEventListener('input', () => {
       const res = await fetch(API + '/auth/dni/' + dni);
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || 'Error del servidor');
+      // Solo rellena los campos: el cliente puede corregirlos si es necesario.
+      // La coincidencia final con RENIEC la valida el servidor al registrar.
       $('regPaterno').value = data.paterno || '';
       $('regMaterno').value = data.materno || '';
       $('regNombres').value = data.nombres || '';
-      $('regPaterno').readOnly = true;
-      $('regMaterno').readOnly = true;
-      $('regNombres').readOnly = true;
-      status.textContent = 'Identidad verificada';
+      status.textContent = 'Identidad verificada. Puede corregir los datos si es necesario.';
       status.className = 'auth-hint-inline ok';
     } catch (err) {
       status.textContent = 'No fue posible verificar su identidad automáticamente. Complete sus datos manualmente.';
       status.className = 'auth-hint-inline warn';
-      $('regPaterno').readOnly = false;
-      $('regMaterno').readOnly = false;
-      $('regNombres').readOnly = false;
     }
   }, 500);
 });
