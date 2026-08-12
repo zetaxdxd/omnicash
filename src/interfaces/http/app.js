@@ -39,9 +39,8 @@ export function createApp() {
   // Health check para monitoreo
   app.get('/api/health', (req, res) => res.json({ ok: true, nombre: 'OmniCash', tiempo: new Date().toISOString() }));
 
-  // Diagnóstico del SMTP (solo dev: prueba la conectividad con Gmail)
+  // Diagnóstico del SMTP: prueba la conectividad TCP con Gmail (no expone credenciales)
   app.get('/api/health/smtp', async (req, res) => {
-    if (process.env.NODE_ENV === 'production') return res.json({ smtp: 'oculto' });
     const t0 = Date.now();
     try {
       const { config } = await import('../../infrastructure/config.js');
