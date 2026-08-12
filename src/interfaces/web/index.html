@@ -3,25 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OmniCash — Banco Digital</title>
+  <title>OmniCash — Tu banco digital, sin sucursales ni filas</title>
+  <meta name="description" content="OmniCash: banco 100% digital del Perú. Abre tu cuenta en 5 minutos con tu DNI, recarga con Yape y transfiere al instante.">
+  <meta property="og:title" content="OmniCash — Tu banco digital">
+  <meta property="og:description" content="Abre tu cuenta en 5 minutos con tu DNI. Recarga con Yape y transfiere al instante.">
+  <meta property="og:image" content="/img/propaganda/banner-yape.svg">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" type="image/jpeg" href="/img/omnicash.jpg">
 </head>
-<body class="auth-body">
+<body class="land-body">
 
-  <main class="auth-panel">
-    <!-- Panel publicitario: toda la pantalla -->
-    <aside class="auth-hero">
+  <!-- Barra de navegación de la portada -->
+  <header class="land-nav">
+    <a href="/" class="hero-logo land-logo" style="text-decoration:none;color:#fff">
+      <img src="/img/omnicash.jpg" alt="OmniCash" class="hero-logo-img">
+      <span class="hero-logo-text">Omni<span>Cash</span></span>
+    </a>
+    <nav class="land-links" aria-label="Secciones">
+      <a href="#producto">Qué ofrecemos</a>
+      <a href="#seguridad">Seguridad</a>
+      <a href="#contacto">Contacto</a>
+    </nav>
+    <div class="land-actions">
+      <a href="/login.html" class="btn-outline land-btn">Iniciar sesión</a>
+      <a href="/login.html?tab=registro" class="btn-primary land-btn">Abrir tu cuenta</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero: titular de marketing + carrusel a toda pantalla -->
+    <section class="land-hero">
       <div class="hero-deco deco-uno"></div>
       <div class="hero-deco deco-dos"></div>
 
-      <div class="hero-content">
-        <div class="hero-logo">
-          <img src="/img/omnicash.jpg" alt="OmniCash" class="hero-logo-img">
-          <span class="hero-logo-text">Omni<span>Cash</span></span>
+      <div class="land-hero-text">
+        <span class="land-eyebrow">BANCO 100% DIGITAL · PERÚ</span>
+        <h1 class="land-title">Tu banco digital,<br><em>sin sucursales ni filas</em></h1>
+        <p class="land-sub">
+          Abre tu cuenta en 5 minutos con tu DNI. Carga dinero real con Yape,
+          transfiere al instante y duerme tranquilo: todo protegido con doble verificación.
+        </p>
+        <div class="land-hero-cta">
+          <a href="/login.html?tab=registro" class="btn-primary land-btn">Abrir mi cuenta gratis</a>
+          <a href="/login.html" class="btn-outline land-btn land-btn-glass">Iniciar sesión</a>
         </div>
+        <div class="land-trust">
+          <span class="hero-badge b1"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M7 7h1"/></svg> Cargas con Yape real</span>
+          <span class="hero-badge b2"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Doble verificación</span>
+          <span class="hero-badge b3"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg> Identidad verificada RENIEC</span>
+        </div>
+      </div>
 
-        <!-- Carrusel de propaganda (como los banners de los grandes bancos) -->
+      <div class="land-carousel-box">
         <div class="hero-carousel" id="heroCarousel">
           <div class="carousel-track">
             <div class="carousel-slide">
@@ -53,180 +86,83 @@
           </div>
         </div>
       </div>
+    </section>
 
-      <p class="hero-foot">© 2026 OmniCash · Banco digital · Perú</p>
-    </aside>
-
-    <!-- Columna del formulario -->
-    <section class="auth-side">
-  <div class="auth-card">
-    <!-- Logotipo OmniCash (visible en pantallas pequeñas) -->
-    <div class="logo logo-card">
-      <img src="/img/omnicash.jpg" alt="OmniCash" class="logo-img">
-      <div class="logo-text">
-        <h1>Omni<span>Cash</span></h1>
-        <p>Banco digital, sin sucursales</p>
+    <!-- Qué ofrecemos -->
+    <section class="land-seccion" id="producto">
+      <div class="land-seccion-head">
+        <span class="land-eyebrow dark">QUÉ OFRECEMOS</span>
+        <h2>Todo lo de un banco grande,<br>desde tu celular</h2>
       </div>
-    </div>
+      <div class="land-features">
+        <article class="land-feature">
+          <span class="land-feature-icon">🏧</span>
+          <h3>Recarga con Yape real</h3>
+          <p>Paga con tu Yape escaneando un QR y tu saldo se acredita solo, 1 sol = 1 crédito.</p>
+        </article>
+        <article class="land-feature">
+          <span class="land-feature-icon">⚡</span>
+          <h3>Transferencias al instante</h3>
+          <p>Envía créditos entre cuentas OmniCash sin costo y sin esperas.</p>
+        </article>
+        <article class="land-feature">
+          <span class="land-feature-icon">🔒</span>
+          <h3>Doble verificación</h3>
+          <p>Cada operación se aprueba con tu contraseña y un código que llega a tu correo.</p>
+        </article>
+        <article class="land-feature">
+          <span class="land-feature-icon">🪪</span>
+          <h3>Identidad verificada RENIEC</h3>
+          <p>Tus datos se validan contra RENIEC al abrir la cuenta y cada vez que cambian.</p>
+        </article>
+        <article class="land-feature">
+          <span class="land-feature-icon">💳</span>
+          <h3>CCI propio de 20 dígitos</h3>
+          <p>Tu cuenta genera su código de cuenta interbancario, listo para el futuro.</p>
+        </article>
+        <article class="land-feature">
+          <span class="land-feature-icon">📖</span>
+          <h3>Cada movimiento queda auditado</h3>
+          <p>Registro interno completo de toda operación, al estilo de un banco formal.</p>
+        </article>
+      </div>
+    </section>
 
-    <!-- Acceso dividido: Iniciar sesión / Registrarse -->
-    <div class="auth-tabs" role="tablist" aria-label="Acceso a OmniCash">
-      <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
-        Iniciar sesión
-      </button>
-      <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false">
-        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
-        Registrarse
-      </button>
-    </div>
+    <!-- Franja de confianza -->
+    <section class="land-stats" id="seguridad">
+      <div><strong>5 min</strong><span>para abrir tu cuenta</span></div>
+      <div><strong>24/7</strong><span>operación sin sucursales</span></div>
+      <div><strong>0%</strong><span>comisión en transferencias</span></div>
+      <div><strong>100%</strong><span>digital y auditado</span></div>
+    </section>
 
-    <!-- Mensaje de error o éxito -->
-    <div id="authMsg" class="auth-msg hidden"></div>
-
-    <!-- Formulario de inicio de sesión -->
-    <form id="loginForm" class="auth-form">
-      <h2>Inicia sesión</h2>
-      <p class="auth-hint">Acceso protegido. Los datos viajan cifrados.</p>
-      <label>Correo electrónico
-        <input type="email" id="loginEmail" placeholder="correo@ejemplo.com" required>
-      </label>
-      <label>Contraseña
-        <span class="password-wrap">
-          <input type="password" id="loginPassword" placeholder="••••••••" required>
-          <button type="button" class="eye-btn" data-target="loginPassword" title="Mostrar contraseña" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </span>
-      </label>
-      <label class="remember">
-        <input type="checkbox" id="rememberMe" checked>
-        Mantener mi sesión iniciada
-      </label>
-      <button type="submit" class="btn-primary">Entrar a mi cuenta</button>
-      <p class="auth-switch" style="margin-top:10px">
-        <a href="#" id="lnkRecuperar">¿Olvidó su contraseña?</a>
-      </p>
-    </form>
-
-    <!-- Recuperación de contraseña con correo de respaldo -->
-    <form id="recoverForm" class="auth-form hidden">
-      <h2>Recuperación de contraseña</h2>
-      <p class="auth-hint">Ingrese su DNI y el <strong>correo de respaldo</strong> que registró.
-        Te enviaremos un código allí.</p>
-      <label>DNI
-        <input type="text" id="recDni" placeholder="Ingrese su DNI" maxlength="9" required>
-      </label>
-      <label>Correo de respaldo
-        <input type="email" id="recBackupEmail" placeholder="respaldo@ejemplo.com" required>
-      </label>
-      <button type="submit" class="btn-primary">Enviar código a mi respaldo</button>
-      <button type="button" id="btnRecoverCancel" class="btn-outline">Volver al inicio de sesión</button>
-    </form>
-
-    <!-- Paso 2: código del respaldo + nueva contraseña -->
-    <form id="recoverConfirmForm" class="auth-form hidden">
-      <h2>Nueva contraseña</h2>
-      <p class="auth-hint">Ingrese el código que llegó a su correo de respaldo y elija su nueva contraseña.</p>
-      <label>Código de respaldo
-        <input type="text" id="recCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
-      </label>
-      <label>Nueva contraseña (mín. 8: mayúscula, minúscula y número)
-        <span class="password-wrap">
-          <input type="password" id="recPassword" placeholder="••••••••" required>
-          <button type="button" class="eye-btn" data-target="recPassword" title="Mostrar contraseña" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </span>
-      </label>
-      <label>Repite la nueva contraseña
-        <span class="password-wrap">
-          <input type="password" id="recPassword2" placeholder="••••••••" required>
-          <button type="button" class="eye-btn" data-target="recPassword2" title="Mostrar contraseña" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </span>
-      </label>
-      <button type="submit" class="btn-primary">Restablecer contraseña</button>
-      <button type="button" id="btnRecoverConfirmCancel" class="btn-outline">Volver al inicio de sesión</button>
-    </form>
-
-    <!-- Paso 2 del login: código de la app de autenticación (2FA) -->
-    <form id="faForm" class="auth-form hidden">
-      <h2>Verificación en dos pasos</h2>
-      <p class="auth-hint">Ingrese el código de 6 dígitos de su app de autenticación (Google Authenticator, Authy...).</p>
-      <label>Código de la app
-        <input type="text" id="faCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
-      </label>
-      <button type="submit" class="btn-primary">Verificar e ingresar</button>
-      <button type="button" id="faCancelar" class="btn-outline">Volver</button>
-    </form>
-
-    <!-- Formulario de registro (apertura de cuenta) -->
-    <form id="registerForm" class="auth-form hidden">
-      <h2>Apertura de cuenta</h2>
-      <p class="auth-hint">Su identidad será verificada: el código llega a su correo.</p>
-
-      <h3 class="field-group-title">Datos personales</h3>
-      <label>DNI (8 dígitos)
-        <input type="text" id="regDni" placeholder="Ingrese su DNI" maxlength="8" inputmode="numeric" autocomplete="off" required>
-      </label>
-      <p id="regDniStatus" class="auth-hint-inline">Ingrese su DNI para continuar con la validación de identidad</p>
-      <label>Apellido paterno
-        <input type="text" id="regPaterno" placeholder="Apellido paterno" autocomplete="off" required>
-      </label>
-      <label>Apellido materno
-        <input type="text" id="regMaterno" placeholder="Apellido materno" autocomplete="off" required>
-      </label>
-      <label>Nombres
-        <input type="text" id="regNombres" placeholder="Nombres" autocomplete="off" required>
-      </label>
-      <label>Dirección (calle, número, distrito)
-        <input type="text" id="regDireccion" placeholder="Av. Los Álamos 123 - Miraflores" required>
-      </label>
-
-      <h3 class="field-group-title">Datos de contacto</h3>
-      <label>Celular
-        <input type="tel" id="regPhone" placeholder="987654321" maxlength="9" required>
-      </label>
-      <label>Correo electrónico
-        <input type="email" id="regEmail" placeholder="correo@ejemplo.com" required>
-      </label>
-      <label>Correo de respaldo <span class="auth-hint-inline">(necesario para recuperar su cuenta si olvida la contraseña)</span>
-        <input type="email" id="regBackupEmail" placeholder="respaldo@ejemplo.com" required>
-      </label>
-
-      <h3 class="field-group-title">Seguridad de acceso</h3>
-      <label>Contraseña (mín. 8 caracteres: mayúscula, minúscula y número)
-        <span class="password-wrap">
-          <input type="password" id="regPassword" placeholder="••••••••" required>
-          <button type="button" class="eye-btn" data-target="regPassword" title="Mostrar contraseña" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </span>
-      </label>
-      <label>Repite la contraseña
-        <span class="password-wrap">
-          <input type="password" id="regPassword2" placeholder="••••••••" required>
-          <button type="button" class="eye-btn" data-target="regPassword2" title="Mostrar contraseña" aria-label="Mostrar contraseña"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-        </span>
-      </label>
-
-      <button type="submit" class="btn-primary">Continuar con el registro</button>
-    </form>
-
-    <!-- Verificación del correo con el código OTP -->
-    <form id="otpForm" class="auth-form hidden">
-      <h2>Verificación de correo</h2>
-      <p class="auth-hint">Le enviamos un código de 6 dígitos a <strong id="otpCorreo">su correo</strong>.
-        Sin esta verificación la cuenta no se activará.</p>
-      <label>Código de verificación
-        <input type="text" id="otpCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
-      </label>
-      <button type="submit" class="btn-primary">Activar mi cuenta</button>
-      <button type="button" id="otpReenviar" class="btn-outline">Reenviar código</button>
-    </form>
-
-    <p class="auth-switch">
-      <span id="switchText">¿No tienes cuenta?</span>
-      <a href="#" id="switchLink">Regístrate aquí</a>
-    </p>
-  </div>
-  </section>
+    <!-- Llamado final -->
+    <section class="land-cta">
+      <h2>Tu dinero, <em>al alcance de tu mano</em></h2>
+      <p>Únete a OmniCash: abre tu cuenta en minutos, sin ir a ningún banco.</p>
+      <a href="/login.html?tab=registro" class="btn-primary land-btn">Abrir mi cuenta gratis</a>
+    </section>
   </main>
 
-  <script src="/js/auth.js"></script>
+  <!-- Pie de página -->
+  <footer class="land-foot" id="contacto">
+    <a href="/" class="hero-logo" style="text-decoration:none;color:#fff">
+      <img src="/img/omnicash.jpg" alt="OmniCash" class="logo-img">
+      <span class="hero-logo-text">Omni<span>Cash</span></span>
+    </a>
+    <p>
+      Banco digital del Perú. Apertura de cuenta con DNI, recarga por Yape y
+      transferencias instantáneas entre cuentas OmniCash.
+    </p>
+    <div class="land-foot-links">
+      <a href="/login.html">Iniciar sesión</a>
+      <a href="/login.html?tab=registro">Abrir cuenta</a>
+      <a href="#producto">Qué ofrecemos</a>
+      <a href="#seguridad">Seguridad</a>
+    </div>
+    <p class="land-foot-legal">© 2026 OmniCash · Banco digital · Perú · Este sitio es una demostración.</p>
+  </footer>
+
+  <script src="/js/carousel.js"></script>
 </body>
 </html>

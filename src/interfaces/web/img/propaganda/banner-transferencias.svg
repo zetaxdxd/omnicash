@@ -49,14 +49,14 @@
   <g transform="rotate(-7 400 620)">
     <rect x="240" y="500" width="320" height="196" rx="24" fill="url(#cardB)"/>
     <rect x="264" y="522" width="96" height="66" rx="14" fill="#E8C988"/>
-    <text x="400" y="612" text-anchor="middle" class="card-num">6060 4821</text>
+    <text x="400" y="612" text-anchor="middle" class="card-num">4557 8302</text>
     <text x="268" y="670" class="card-holder">EMISOR · OMNI</text>
   </g>
 
   <g transform="rotate(6 400 620)">
     <rect x="240" y="500" width="320" height="196" rx="24" fill="url(#cardA)"/>
     <rect x="264" y="522" width="96" height="66" rx="14" fill="#F5D9A8"/>
-    <text x="400" y="612" text-anchor="middle" class="card-num">6060 7314</text>
+    <text x="400" y="612" text-anchor="middle" class="card-num">4557 9024</text>
     <text x="268" y="670" class="card-holder">RECEPTOR · CASH</text>
   </g>
 

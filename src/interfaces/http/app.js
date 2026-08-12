@@ -22,13 +22,16 @@ export function createApp() {
   // Parsea JSON del body (máximo 100kb)
   app.use(express.json({ limit: '100kb' }));
 
-  // Sirve el frontend estático (login, dashboard, admin)
+  // Sirve el frontend estático (portada de marketing, login, dashboard, admin)
   app.use(express.static(WEB_DIR));
 
-  // La raíz muestra el login
+  // La raíz muestra la portada de marketing
   app.get('/', (req, res) => res.sendFile(path.join(WEB_DIR, 'index.html')));
 
-  // Si alguien visita /dashboard.html sin sesión, el JS lo redirige al login
+  // El acceso (login/registro) vive en /login.html; /login redirige ahí
+  app.get('/login', (req, res) => res.redirect('/login.html'));
+
+  // Si alguien visita /dashboard.html sin sesión, el JS lo redirige a /login.html
 
   // API pública de autenticación
   app.use('/api/auth', authRoutes);

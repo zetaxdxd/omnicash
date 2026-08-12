@@ -14,9 +14,9 @@ const API = '/api';
 const token = localStorage.getItem('omnicash_token') || sessionStorage.getItem('omnicash_token');
 const usuario = JSON.parse(localStorage.getItem('omnicash_usuario') || sessionStorage.getItem('omnicash_usuario') || 'null');
 
-// Sin sesión: volver al login
+// Sin sesión: volver al acceso
 if (!token || !usuario) {
-  window.location.href = '/';
+  window.location.href = '/login.html';
 }
 
 /** Cabeceras con token de autenticación */
@@ -47,7 +47,7 @@ function cerrarSesion() {
   localStorage.removeItem('omnicash_usuario');
   sessionStorage.removeItem('omnicash_token');
   sessionStorage.removeItem('omnicash_usuario');
-  window.location.href = '/';
+  window.location.href = '/login.html';
 }
 
 // ---------- Menú de configuración ----------

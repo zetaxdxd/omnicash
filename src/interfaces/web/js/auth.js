@@ -51,62 +51,6 @@ $('switchLink').addEventListener('click', (e) => {
   irAPestana($('loginForm').classList.contains('hidden'));
 });
 
-// ---------- Carrusel de propaganda ----------
-(function carrusel() {
-  const total = document.querySelectorAll('.carousel-slide').length;
-  const dots = Array.from(document.querySelectorAll('.carousel-dot'));
-  let indice = 0;
-  let timer = null;
-  let pausado = false;
-
-  const progreso = 6000; // milisegundos por diapositiva
-
-  function irA(n) {
-    indice = (n + total) % total;
-    document.querySelectorAll('.carousel-slide').forEach((s, i) => {
-      s.classList.toggle('active', i === indice);
-    });
-    dots.forEach((d, i) => {
-      d.classList.toggle('active', i === indice);
-      d.classList.remove('pausado');
-    });
-    reiniciar();
-  }
-
-  function reiniciar() {
-    clearInterval(timer);
-    if (pausado) return;
-    // La barra de progreso del punto activo avanza junto con el auto
-    dots[indice].classList.remove('active');
-    void dots[indice].offsetWidth; // reinicia la animación CSS
-    dots[indice].classList.add('active');
-    timer = setInterval(() => irA(indice + 1), progreso);
-  }
-
-  function pausar() {
-    pausado = true;
-    clearInterval(timer);
-    dots.forEach(d => d.classList.add('pausado'));
-  }
-  function reanudar() {
-    pausado = false;
-    dots.forEach(d => d.classList.remove('pausado'));
-    reiniciar();
-  }
-
-  const hero = $('heroCarousel');
-  hero.addEventListener('mouseenter', pausar);
-  hero.addEventListener('mouseleave', reanudar);
-  hero.addEventListener('touchstart', pausar, { passive: true });
-  hero.addEventListener('touchend', reanudar, { passive: true });
-
-  $('carPrev').addEventListener('click', () => irA(indice - 1));
-  $('carNext').addEventListener('click', () => irA(indice + 1));
-  dots.forEach(d => d.addEventListener('click', () => irA(Number(d.dataset.slide))));
-
-  irA(0);
-})();
-
 // ---------- Recuperación de contraseña ----------
 $('lnkRecuperar').addEventListener('click', (e) => {
   e.preventDefault();
@@ -362,3 +306,8 @@ $('otpReenviar').addEventListener('click', async () => {
     setTimeout(() => { $('otpReenviar').disabled = false; }, 3000);
   }
 });
+
+// ---------- Acceso directo al registro desde la portada (?tab=registro) ----------
+if (new URLSearchParams(window.location.search).get('tab') === 'registro') {
+  irAPestana(false);
+}

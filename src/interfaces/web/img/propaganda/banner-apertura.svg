@@ -48,11 +48,11 @@
     <path d="M-140 -10 C -140 -45 -110 -55 -80 -55 C -50 -55 -20 -45 -20 -10 L -20 -8 C -20 -40 -120 -40 -120 -8 Z" fill="#AFC4D8"/>
     <text x="-80" y="80" text-anchor="middle" class="dni-label">REPÚBLICA DEL PERÚ</text>
     <rect x="-140" y="-140" width="120" height="150" rx="14" fill="none" stroke="#FFFFFF" stroke-width="3"/>
-    <!-- Número -->
+    <!-- Número (datos ficticios de demostración) -->
     <text x="-10" y="-100" class="dni-label">Nº DOCUMENTO</text>
-    <text x="-10" y="-58" class="dni-num">7314 8217</text>
-    <text x="-10" y="-16" class="dni-name">FERNANDEZ LLA.</text>
-    <text x="-10" y="12" class="dni-name" fill="#5A9BC2">ELIAS</text>
+    <text x="-10" y="-58" class="dni-num">4721 6589</text>
+    <text x="-10" y="-16" class="dni-name">VALDEZ ROJAS</text>
+    <text x="-10" y="12" class="dni-name" fill="#5A9BC2">MARÍA</text>
     <text x="-10" y="56" class="dni-sub">DNI ELECTRÓNICO</text>
     <text x="-10" y="88" class="dni-brand">OmniCash</text>
     <!-- Marca de verificado -->
