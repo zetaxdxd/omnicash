@@ -25,9 +25,9 @@ function normalizar(texto) {
 /** Nombres buscados en la respuesta según el proveedor (formato variado) */
 function extraer(objeto) {
   return {
-    nombres: objeto.nombres ?? objeto.names ?? null,
-    apellidoPaterno: objeto.apellido_paterno ?? objeto.apellidoPaterno ?? objeto.father_last_name ?? null,
-    apellidoMaterno: objeto.apellido_materno ?? objeto.apellidoMaterno ?? objeto.mother_last_name ?? null,
+    nombres: objeto.nombres ?? objeto.names ?? objeto.first_name ?? null,
+    apellidoPaterno: objeto.apellido_paterno ?? objeto.apellidoPaterno ?? objeto.father_last_name ?? objeto.first_last_name ?? null,
+    apellidoMaterno: objeto.apellido_materno ?? objeto.apellidoMaterno ?? objeto.mother_last_name ?? objeto.second_last_name ?? null,
   };
 }
 
