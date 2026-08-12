@@ -70,7 +70,8 @@ export function createApp() {
       });
       res.json({ ok: true, host: config.smtpHost, puerto: config.smtpPort, tiempoMs: Date.now() - t0 });
     } catch (e) {
-      res.json({ ok: false, host: config.smtpHost, puerto: config.smtpPort, error: e.message.split('\n')[0].slice(0, 300), tiempoMs: Date.now() - t0 });
+      const detalle = String((e && (e.message || e.response)) || e).split('\n')[0].slice(0, 300);
+      res.json({ ok: false, host: config.smtpHost, puerto: config.smtpPort, error: detalle, tiempoMs: Date.now() - t0 });
     }
   });
 
