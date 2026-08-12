@@ -47,8 +47,8 @@ export function createApp() {
   // Diagnóstico SMTP: prueba el envío con el proveedor configurado (solo datos de error, no credenciales)
   app.get('/api/health/smtp', async (req, res) => {
     const t0 = Date.now();
+    const { config } = await import('../../infrastructure/config.js');
     try {
-      const { config } = await import('../../infrastructure/config.js');
       if (!config.smtpUser || !config.smtpPassword) {
         return res.json({ ok: false, motivo: 'SMTP_USER/SMTP_PASSWORD no configurados', tiempoMs: Date.now() - t0 });
       }
@@ -58,6 +58,7 @@ export function createApp() {
         port: config.smtpPort,
         secure: config.smtpPort === 465,
         auth: { user: config.smtpUser, pass: config.smtpPassword },
+        connectionOptions: { family: 4 },
         connectionTimeout: 10000,
         greetingTimeout: 10000,
         socketTimeout: 15000,
