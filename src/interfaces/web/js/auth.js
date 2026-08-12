@@ -47,7 +47,7 @@ $('btnRecoverCancel').addEventListener('click', () => {
 // Paso 1: solicitar el código al correo de respaldo
 $('recoverForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  mostrarMsg('Verificando tus datos...', 'ok');
+  mostrarMsg('Verificando sus datos...', 'ok');
   try {
     const data = await peticion('/auth/recuperar', {
       dni: $('recDni').value.trim(),
@@ -73,7 +73,7 @@ $('recoverConfirmForm').addEventListener('submit', async (e) => {
     mostrarMsg('Las contraseñas no coinciden. Revísalas', 'error');
     return;
   }
-  mostrarMsg('Restableciendo tu contraseña...', 'ok');
+  mostrarMsg('Restableciendo su contraseña...', 'ok');
   try {
     await peticion('/auth/recuperar/confirmar', {
       dni: $('recDni').value.trim(),
@@ -81,7 +81,7 @@ $('recoverConfirmForm').addEventListener('submit', async (e) => {
       codigo: $('recCodigo').value.trim(),
       nuevaPassword: clave,
     });
-    mostrarMsg('✅ Contraseña restablecida. Inicia sesión con la nueva.', 'ok');
+    mostrarMsg('Contraseña restablecida. Inicia sesión con la nueva.', 'ok');
     $('loginEmail').value = '';
     $('loginPassword').value = '';
     mostrarFormulario($('loginForm'),
@@ -134,13 +134,13 @@ $('regDni').addEventListener('input', () => {
   $('regDni').value = dni;
   const status = $('regDniStatus');
   if (dni.length !== 8) {
-    status.textContent = 'Escribe tu DNI y tus datos se autocompletan';
+    status.textContent = 'Ingrese su DNI para continuar con la validación de identidad';
     status.className = 'auth-hint-inline';
     return;
   }
   clearTimeout(dniTimeout);
   dniTimeout = setTimeout(async () => {
-    status.textContent = 'Verificando con RENIEC...';
+    status.textContent = 'Verificando su identidad...';
     status.className = 'auth-hint-inline';
     try {
       const res = await fetch(API + '/auth/dni/' + dni);
@@ -152,10 +152,10 @@ $('regDni').addEventListener('input', () => {
       $('regPaterno').readOnly = true;
       $('regMaterno').readOnly = true;
       $('regNombres').readOnly = true;
-      status.textContent = 'Datos confirmados con RENIEC';
+      status.textContent = 'Identidad verificada';
       status.className = 'auth-hint-inline ok';
     } catch (err) {
-      status.textContent = err.message;
+      status.textContent = 'No fue posible verificar su identidad automáticamente. Complete sus datos manualmente.';
       status.className = 'auth-hint-inline warn';
       $('regPaterno').readOnly = false;
       $('regMaterno').readOnly = false;
@@ -210,12 +210,14 @@ $('faCancelar').addEventListener('click', () => {
 });
 
 // ---------- Ojito: mostrar/ocultar contraseñas ----------
+const ICONO_OJO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+const ICONO_OJO_TACHADO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>';
 document.querySelectorAll('.eye-btn').forEach(boton => {
   boton.addEventListener('click', () => {
     const campo = $(boton.dataset.target);
     const visible = campo.type === 'text';
     campo.type = visible ? 'password' : 'text';
-    boton.textContent = visible ? '👁' : '🙈';
+    boton.innerHTML = visible ? ICONO_OJO : ICONO_OJO_TACHADO;
   });
 });
 
@@ -231,7 +233,7 @@ $('registerForm').addEventListener('submit', async (e) => {
     return;
   }
 
-  mostrarMsg('Comprobando tu identidad...', 'ok');
+  mostrarMsg('Comprobando su identidad...', 'ok');
   try {
     const data = await peticion('/auth/registro', {
       paterno: $('regPaterno').value.trim(),
@@ -264,7 +266,7 @@ $('otpForm').addEventListener('submit', async (e) => {
       email: $('otpCorreo').textContent,
       codigo: $('otpCodigo').value.trim(),
     });
-    mostrarMsg('✅ Cuenta activada. Ya puedes iniciar sesión.', 'ok');
+    mostrarMsg('Cuenta activada. Ya puedes iniciar sesión.', 'ok');
     // Vuelve al login con el correo precargado
     $('loginEmail').value = $('otpCorreo').textContent;
     $('loginPassword').value = '';
@@ -280,7 +282,7 @@ $('otpReenviar').addEventListener('click', async () => {
   mostrarMsg('Enviando un código nuevo...', 'ok');
   try {
     await peticion('/auth/registro/reenviar', { email: $('otpCorreo').textContent });
-    mostrarMsg('✅ Código reenviado a tu correo', 'ok');
+    mostrarMsg('Código reenviado a su correo', 'ok');
   } catch (err) {
     mostrarMsg(err.message);
   } finally {

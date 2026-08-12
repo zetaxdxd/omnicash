@@ -50,7 +50,7 @@ function cerrarSesion() {
   window.location.href = '/';
 }
 
-// ---------- Menú de configuración (⚙️) ----------
+// ---------- Menú de configuración ----------
 
 /** Modo del modal de datos: true = solo número, false = datos completos */
 let modoDatosActual = false;
@@ -108,10 +108,10 @@ async function cerrarOtrasSesiones() {
   if (!confirm('¿Cerrar sesión en los demás dispositivos?')) return;
   try {
     await peticion('/auth/sesiones', 'DELETE', {});
-    alert('✅ Cerraste sesión en los demás dispositivos');
+    alert('Se cerró la sesión en los demás dispositivos');
     if (typeof cargarSeguridad === 'function') cargarSeguridad();
   } catch (err) {
-    alert(`❌ ${err.message}`);
+    alert(`${err.message}`);
   }
 }
 
@@ -123,11 +123,11 @@ function abrirModalDatos(soloNumero) {
   campos.forEach((l, i) => l.classList.toggle('hidden', i < 5 && esNumero === 1));
 
   if (soloNumero) {
-    $('datosTitulo').textContent = '📱 Cambiar mi número';
-    $('datosInfo').textContent = 'Ingresa tu nuevo celular. Enviaremos un código a tu correo para confirmar el cambio.';
+    $('datosTitulo').textContent = 'Cambiar mi número';
+    $('datosInfo').textContent = 'Ingrese su nuevo celular. Enviaremos un código a su correo para confirmar el cambio.';
   } else {
-    $('datosTitulo').textContent = '👤 Mis datos personales';
-    $('datosInfo').textContent = 'Actualiza tus datos y confirma con el código que enviaremos a tu correo.';
+    $('datosTitulo').textContent = 'Mis datos personales';
+    $('datosInfo').textContent = 'Actualice sus datos y confirme con el código que enviaremos a su correo.';
     $('datosPaterno').value = usuario.apellidoPaterno ?? '';
     $('datosMaterno').value = usuario.apellidoMaterno ?? '';
     $('datosNombres').value = usuario.nombres ?? '';
@@ -147,17 +147,17 @@ function abrirModalDatos(soloNumero) {
 /** Paso 1: pide el código de autorización al correo principal */
 async function enviarCodigoDatos() {
   const dni = $('datosDni').value.trim();
-  $('datosMsg').textContent = 'Enviando código a tu correo...';
+  $('datosMsg').textContent = 'Enviando código a su correo...';
   try {
     await peticion('/auth/identidad/solicitar', 'POST', { dni });
     $('datosCodigoZona').classList.remove('hidden');
     $('datosEnviar').classList.add('hidden');
     $('datosAplicar').classList.remove('hidden');
-    $('datosMsg').textContent = '✅ Revisa tu correo principal e ingresa el código de 6 dígitos.';
+    $('datosMsg').textContent = 'Revise su correo principal e ingrese el código de 6 dígitos.';
     $('datosMsg').style.color = 'var(--verde)';
     $('datosCodigo').focus();
   } catch (err) {
-    $('datosMsg').textContent = `❌ ${err.message}`;
+    $('datosMsg').textContent = `${err.message}`;
     $('datosMsg').style.color = 'var(--rojo)';
   }
 }
@@ -179,15 +179,15 @@ async function aplicarCambioDatos() {
     cambios.dni = $('datosDni').value.trim();
   }
 
-  $('datosMsg').textContent = 'Guardando tus cambios...';
+  $('datosMsg').textContent = 'Guardando sus cambios...';
   try {
     await peticion('/auth/identidad/aplicar', 'POST', { codigo, cambios });
-    $('datosMsg').textContent = '✅ Tus datos fueron actualizados';
+    $('datosMsg').textContent = 'Sus datos fueron actualizados';
     $('datosMsg').style.color = 'var(--verde)';
     refrescarIdentidadLocal();
     setTimeout(() => $('datosModal').classList.add('hidden'), 900);
   } catch (err) {
-    $('datosMsg').textContent = `❌ ${err.message}`;
+    $('datosMsg').textContent = `${err.message}`;
     $('datosMsg').style.color = 'var(--rojo)';
   }
 }
@@ -223,19 +223,19 @@ async function guardarContrasena() {
   const repetida = $('passNueva2').value;
 
   if (nueva !== repetida) {
-    $('passMsg').textContent = '❌ Las contraseñas nuevas no coinciden';
+    $('passMsg').textContent = 'Las contraseñas nuevas no coinciden';
     $('passMsg').style.color = 'var(--rojo)';
     return;
   }
 
-  $('passMsg').textContent = 'Cambiando tu contraseña...';
+  $('passMsg').textContent = 'Cambiando su contraseña...';
   try {
     await peticion('/auth/cambiar-contrasena', 'POST', { passwordActual: actual, nuevaPassword: nueva });
-    $('passMsg').textContent = '✅ Contraseña cambiada. Las demás sesiones se cerraron.';
+    $('passMsg').textContent = 'Contraseña cambiada. Las demás sesiones se cerraron.';
     $('passMsg').style.color = 'var(--verde)';
     setTimeout(() => $('passModal').classList.add('hidden'), 1200);
   } catch (err) {
-    $('passMsg').textContent = `❌ ${err.message}`;
+    $('passMsg').textContent = `${err.message}`;
     $('passMsg').style.color = 'var(--rojo)';
   }
 }
@@ -254,7 +254,7 @@ function formatoFecha(iso) {
 function pedirReautenticacion(contexto) {
   return new Promise((resolve) => {
     $('reauthModal').classList.remove('hidden');
-    $('reauthInfo').textContent = `${contexto} Supera el monto seguro, debemos confirmar tu identidad.`;
+    $('reauthInfo').textContent = `${contexto} Supera el monto seguro, debemos confirmar su identidad.`;
     $('reauthMsg').textContent = '';
     $('reauthValue').value = '';
     $('reauthValue').focus();
@@ -273,7 +273,7 @@ function pedirReautenticacion(contexto) {
         const data = await peticion('/auth/reauth', 'POST', { password: $('reauthValue').value });
         terminar(data.reauthToken);
       } catch (err) {
-        $('reauthMsg').textContent = `❌ ${err.message}`;
+        $('reauthMsg').textContent = `${err.message}`;
       }
     };
   });
@@ -348,12 +348,12 @@ function configurarOperacionesCliente() {
     await conReauth('Retiro en cajero.', monto, async (rt) => {
       try {
         const data = await peticion('/cuenta/retiro', 'POST', { monto }, rt);
-        $('retiroMsg').textContent = `✅ Retiraste ${formatoCreditos(data.totalDebitado)} (comisión ${formatoCreditos(data.comision)}). Saldo: ${formatoCreditos(data.saldoRestante)}`;
+        $('retiroMsg').textContent = `Retiraste ${formatoCreditos(data.totalDebitado)} (comisión ${formatoCreditos(data.comision)}). Saldo: ${formatoCreditos(data.saldoRestante)}`;
         $('retiroMsg').style.color = 'var(--verde)';
         $('retiroMonto').value = '';
         cargarMiCuenta();
       } catch (err) {
-        $('retiroMsg').textContent = `❌ ${err.message}`;
+        $('retiroMsg').textContent = `${err.message}`;
         $('retiroMsg').style.color = 'var(--rojo)';
       }
     });
@@ -370,12 +370,12 @@ function configurarOperacionesCliente() {
           destino: $('transferDestino').value.trim(),
           monto,
         }, rt);
-        $('transferMsg').textContent = `✅ Enviaste ${formatoCreditos(data.monto)} a ${data.destinatario}. Saldo: ${formatoCreditos(data.saldoRestante)}`;
+        $('transferMsg').textContent = `Enviaste ${formatoCreditos(data.monto)} a ${data.destinatario}. Saldo: ${formatoCreditos(data.saldoRestante)}`;
         $('transferMsg').style.color = 'var(--verde)';
         $('transferDestino').value = ''; $('transferMonto').value = '';
         cargarMiCuenta();
       } catch (err) {
-        $('transferMsg').textContent = `❌ ${err.message}`;
+        $('transferMsg').textContent = `${err.message}`;
         $('transferMsg').style.color = 'var(--rojo)';
       }
     });
@@ -384,19 +384,19 @@ function configurarOperacionesCliente() {
   // Depósito por Yape (real: queda pendiente de confirmación del banco)
   $('yapeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    $('yapeMsg').textContent = 'Registrando tu solicitud...';
+    $('yapeMsg').textContent = 'Registrando su solicitud...';
     try {
       const data = await peticion('/cuenta/deposito-yape', 'POST', {
         celularYape: $('yapeCelular').value.trim(),
         monto: Number($('yapeMonto').value),
         operacion: $('yapeOperacion').value.trim(),
       });
-      $('yapeMsg').textContent = `✅ Solicitud #${data.referencia}: envía S/ ${formatoCreditos(data.monto)} por Yape a ${data.yapeCelular}. Espera la confirmación del banco.`;
+      $('yapeMsg').textContent = `Solicitud #${data.referencia}: envía S/ ${formatoCreditos(data.monto)} por Yape a ${data.yapeCelular}. Espera la confirmación del banco.`;
       $('yapeMsg').style.color = 'var(--verde)';
       $('yapeForm').reset();
       cargarDepositosYape();
     } catch (err) {
-      $('yapeMsg').textContent = `❌ ${err.message}`;
+      $('yapeMsg').textContent = `${err.message}`;
       $('yapeMsg').style.color = 'var(--rojo)';
     }
   });
@@ -433,7 +433,7 @@ async function cargarSeguridad() {
         <td>${s.userAgent || '—'}</td>
         <td>${s.ip || '—'}</td>
         <td>${formatoFecha(s.ultimaActividad)}</td>
-        <td>${s.actual ? '✅ Este dispositivo' : '—'}</td>
+        <td>${s.actual ? 'Este dispositivo' : '—'}</td>
         <td>${s.actual ? '' : `<button class="btn-small" onclick="revocarSesion(${s.id})">Cerrar</button>`}</td>
       </tr>
     `).join('') || '<tr><td colspan="5">Sin sesiones activas</td></tr>';
@@ -448,27 +448,27 @@ function render2fa() {
   const cont = $('seg2fa');
   if (usuario.totpEnabled) {
     cont.innerHTML = `
-      <p class="card-sub">✅ Verificación en dos pasos <strong>ACTIVA</strong>.
-      Cada ingreso exigirá un código de tu app de autenticación.</p>
+      <p class="card-sub">Verificación en dos pasos <strong>ACTIVA</strong>.
+      Cada ingreso exigirá un código de su app de autenticación.</p>
       <button id="btnDesactivar2fa" class="btn-outline">Desactivar 2FA</button>`;
     $('btnDesactivar2fa').addEventListener('click', async () => {
-      const pass = prompt('Para desactivar el 2FA ingresa tu contraseña:');
+      const pass = prompt('Para desactivar la verificación en dos pasos ingrese su contraseña:');
       if (!pass) return;
       try {
         await peticion('/auth/2fa/desactivar', 'POST', { password: pass });
         usuario.totpEnabled = false;
         render2fa();
-        $('segMsg').textContent = '✅ 2FA desactivado';
+        $('segMsg').textContent = 'Verificación en dos pasos desactivada';
         $('segMsg').style.color = 'var(--verde)';
       } catch (err) {
-        $('segMsg').textContent = `❌ ${err.message}`;
+        $('segMsg').textContent = `${err.message}`;
         $('segMsg').style.color = 'var(--rojo)';
       }
     });
   } else {
     cont.innerHTML = `
       <p class="card-sub">La verificación en dos pasos está <strong>desactivada</strong>.
-      Actívala con tu app de autenticación (Google Authenticator, Authy...).</p>
+      Actívela con su app de autenticación (Google Authenticator, Authy...).</p>
       <button id="btnActivar2fa" class="btn-primary">Activar 2FA</button>
       <div id="qrawrap" class="hidden" style="text-align:center;margin-top:14px"></div>`;
     $('btnActivar2fa').addEventListener('click', async () => {
@@ -476,7 +476,7 @@ function render2fa() {
         const data = await peticion('/auth/2fa/iniciar', 'POST', {});
         $('qrawrap').innerHTML = `
           <img src="${data.qr}" alt="QR de autenticación" style="width:200px;height:200px;border-radius:10px">
-          <p class="card-sub">Escanea con tu app e ingresa el código de 6 dígitos:</p>
+          <p class="card-sub">Escanee con su app e ingrese el código de 6 dígitos:</p>
           <input type="text" id="faConfirmCodigo" maxlength="6" placeholder="000000" style="text-align:center;letter-spacing:4px">
           <button id="btnConfirmar2fa" class="btn-primary" style="margin-top:8px">Confirmar</button>
           <p class="card-sub">Si no puedes escanear, ingresa manualmente: <code>${data.secreto}</code></p>`;
@@ -488,15 +488,15 @@ function render2fa() {
             localStorage.setItem('omnicash_usuario', JSON.stringify(usuario));
             sessionStorage.setItem('omnicash_usuario', JSON.stringify(usuario));
             render2fa();
-            $('segMsg').textContent = '✅ 2FA activado';
+            $('segMsg').textContent = 'Verificación en dos pasos activada';
             $('segMsg').style.color = 'var(--verde)';
           } catch (err) {
-            $('segMsg').textContent = `❌ ${err.message}`;
+            $('segMsg').textContent = `${err.message}`;
             $('segMsg').style.color = 'var(--rojo)';
           }
         });
       } catch (err) {
-        $('segMsg').textContent = `❌ ${err.message}`;
+        $('segMsg').textContent = `${err.message}`;
         $('segMsg').style.color = 'var(--rojo)';
       }
     });
@@ -508,11 +508,11 @@ function configurarSeguridad() {
   $('btnCerrarSesiones').addEventListener('click', async () => {
     try {
       await peticion('/auth/sesiones', 'DELETE', {});
-      $('segMsg').textContent = '✅ Cerraste sesión en los demás dispositivos';
+      $('segMsg').textContent = 'Se cerró la sesión en los demás dispositivos';
       $('segMsg').style.color = 'var(--verde)';
       cargarSeguridad();
     } catch (err) {
-      $('segMsg').textContent = `❌ ${err.message}`;
+      $('segMsg').textContent = `${err.message}`;
       $('segMsg').style.color = 'var(--rojo)';
     }
   });
@@ -557,12 +557,12 @@ function configurarDeposito() {
         cci: $('depositoCuenta').value.trim(),
         monto: Number($('depositoMonto').value),
       });
-      $('depositoMsg').textContent = `✅ Depósito de ${formatoCreditos(data.cuenta.balance)} — saldo actual: ${formatoCreditos(data.cuenta.balance)}`;
+      $('depositoMsg').textContent = `Depósito de ${formatoCreditos(data.cuenta.balance)} — saldo actual: ${formatoCreditos(data.cuenta.balance)}`;
       $('depositoMsg').style.color = 'var(--verde)';
       $('depositoCuenta').value = ''; $('depositoMonto').value = '';
       cargarClientes();
     } catch (err) {
-      $('depositoMsg').textContent = `❌ ${err.message}`;
+      $('depositoMsg').textContent = `${err.message}`;
       $('depositoMsg').style.color = 'var(--rojo)';
     }
   });
@@ -593,9 +593,9 @@ async function cargarDashboardAdmin() {
         <td>
           ${u.role === 'CLIENTE' ? `
             <button class="btn-small" onclick="cambiarEstado(${u.id}, '${u.state === 'ACTIVO' ? 'BLOQUEADO' : 'ACTIVO'}')">
-              ${u.state === 'ACTIVO' ? '🔒 Bloquear' : '🔓 Activar'}
+              ${u.state === 'ACTIVO' ? 'Bloquear' : 'Activar'}
             </button>
-            <button class="btn-small rojo" onclick="eliminarCliente(${u.id})">🗑</button>
+            <button class="btn-small rojo" onclick="eliminarCliente(${u.id})" title="Eliminar">Eliminar</button>
           ` : ''}
         </td>
       </tr>
@@ -624,12 +624,12 @@ function configurarAdmin() {
         email: $('twEmail').value.trim(),
         password: $('twPassword').value,
       });
-      $('twMsg').textContent = '✅ Trabajador creado correctamente';
+      $('twMsg').textContent = 'Trabajador creado correctamente';
       $('twMsg').style.color = 'var(--verde)';
       $('crearTrabajadorForm').reset();
       cargarDashboardAdmin();
     } catch (err) {
-      $('twMsg').textContent = `❌ ${err.message}`;
+      $('twMsg').textContent = `${err.message}`;
       $('twMsg').style.color = 'var(--rojo)';
     }
   });
@@ -651,8 +651,8 @@ async function cargarYapePendientes() {
         <td>${d.operacion || '—'}</td>
         <td>${formatoFecha(d.createdAt)}</td>
         <td>
-          <button class="btn-small" onclick="resolverYape(${d.id}, 'ACREDITAR')">✔ Acreditar</button>
-          <button class="btn-small rojo" onclick="resolverYape(${d.id}, 'RECHAZAR')">✖ Rechazar</button>
+          <button class="btn-small" onclick="resolverYape(${d.id}, 'ACREDITAR')">Acreditar</button>
+          <button class="btn-small rojo" onclick="resolverYape(${d.id}, 'RECHAZAR')">Rechazar</button>
         </td>
       </tr>
     `).join('') || '<tr><td colspan="8">Sin solicitudes pendientes</td></tr>';
@@ -666,18 +666,18 @@ async function cargarYapePendientes() {
  * Doble verificación: contraseña del admin + código OTP enviado a su correo.
  */
 window.resolverYape = async (id, accion) => {
-  const password = prompt('Ingresa tu contraseña de administrador:');
+  const password = prompt('Ingrese su contraseña de administrador:');
   if (!password) return;
   try {
     const paso1 = await peticion(`/admin/yape/${id}/autorizar`, 'POST', { password });
-    const codigo = prompt(`Revisa tu correo (${paso1.correo}). Pega el código de 6 dígitos:`);
+    const codigo = prompt(`Revise su correo (${paso1.correo}). Ingrese el código de 6 dígitos:`);
     if (!codigo) return;
     const paso2 = await peticion(`/admin/yape/${id}/finalizar`, 'POST', { codigo: codigo.trim(), accion });
-    $('yapeAdminMsg').textContent = `✅ ${paso2.mensaje}`;
+    $('yapeAdminMsg').textContent = `${paso2.mensaje}`;
     $('yapeAdminMsg').style.color = 'var(--verde)';
     cargarYapePendientes();
   } catch (err) {
-    $('yapeAdminMsg').textContent = `❌ ${err.message}`;
+    $('yapeAdminMsg').textContent = `${err.message}`;
     $('yapeAdminMsg').style.color = 'var(--rojo)';
   }
 };
