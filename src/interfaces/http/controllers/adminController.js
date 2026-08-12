@@ -9,6 +9,7 @@
  */
 
 import { obtenerDashboardAdmin } from '../../../application/use-cases/obtenerDashboardAdmin.js';
+import { obtenerAuditoria } from '../../../application/use-cases/obtenerAuditoria.js';
 import { cambiarEstadoUsuario, crearTrabajador, eliminarUsuario } from '../../../application/use-cases/gestionUsuarios.js';
 import { listarClientesParaTrabajador } from '../../../application/use-cases/panelTrabajador.js';
 import { autorizarDepositoYape, YAPE_CONFIRM_PURPOSE } from '../../../application/use-cases/autorizarDepositoYape.js';
@@ -19,6 +20,15 @@ import { YapeDepositRepository } from '../../../infrastructure/repositories/Yape
 export async function dashboard(req, res, next) {
   try {
     res.json(await obtenerDashboardAdmin());
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/admin/auditoria — registro de auditoría en bloques (solo ADMIN) */
+export async function auditoria(req, res, next) {
+  try {
+    res.json(await obtenerAuditoria());
   } catch (error) {
     next(error);
   }

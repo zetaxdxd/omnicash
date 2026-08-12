@@ -8,17 +8,16 @@
 import { UserRepository } from '../../infrastructure/repositories/UserRepository.js';
 import { AccountRepository } from '../../infrastructure/repositories/AccountRepository.js';
 import { TransactionRepository } from '../../infrastructure/repositories/TransactionRepository.js';
-import { AuditRepository } from '../../infrastructure/repositories/AuditRepository.js';
 
 /**
  * Construye el resumen global del banco (solo administradores).
+ * El registro de auditoría se consulta aparte (ver obtenerAuditoria).
  * @returns {object} Métricas y listados
  */
 export async function obtenerDashboardAdmin() {
   const usuarios = await UserRepository.findAll({ limit: 200 });
   const cuentas = await AccountRepository.findAll();
   const transacciones = await TransactionRepository.findAll(100);
-  const auditoria = await AuditRepository.recent(50);
 
   // Construir mapa usuario->cuenta para el listado
   const cuentaPorUsuario = new Map(cuentas.map(c => [c.userId, c]));
@@ -39,6 +38,5 @@ export async function obtenerDashboardAdmin() {
         : null,
     })),
     transacciones: transacciones.map(t => t.toJSON()),
-    auditoria,
   };
 }

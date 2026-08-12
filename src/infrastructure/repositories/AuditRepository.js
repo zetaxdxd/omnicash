@@ -30,6 +30,21 @@ export const AuditRepository = {
     return rows;
   },
 
+  /** Obtiene las entradas del log de los últimos N días (historial del banco). */
+  async recentDesde(dias, limit = 1000) {
+    const db = await getDb();
+    const desde = new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
+    const rows = await db.prepare(`
+      SELECT a.*, u.name AS actor_name, u.email AS actor_email
+      FROM audit_log a
+      LEFT JOIN users u ON u.id = a.actor_id
+      WHERE a.created_at >= ?
+      ORDER BY a.id DESC
+      LIMIT ?
+    `).all(desde, limit);
+    return rows;
+  },
+
   /** Filtra auditoría por tipo de acción. */
   async findByAction(action, limit = 100) {
     const db = await getDb();

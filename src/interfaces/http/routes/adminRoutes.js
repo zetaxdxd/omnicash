@@ -10,6 +10,7 @@
 import { Router } from 'express';
 import {
   dashboard,
+  auditoria,
   cambiarEstado,
   crearEmpleado,
   eliminar,
@@ -28,6 +29,9 @@ adminRoutes.use(autenticar);
 
 // GET /api/admin/dashboard — solo administrador supremo
 adminRoutes.get('/dashboard', proteger('ADMIN'), dashboard);
+
+// GET /api/admin/auditoria — registro de auditoría en bloques (solo ADMIN)
+adminRoutes.get('/auditoria', proteger('ADMIN'), auditoria);
 
 // POST /api/admin/usuarios/:id/estado — bloquear/desbloquear (solo admin, con aprobación)
 adminRoutes.post('/usuarios/:id/estado',

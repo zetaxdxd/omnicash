@@ -675,14 +675,6 @@ async function cargarDashboardAdmin() {
         </td>
       </tr>
     `).join('');
-
-    $('auditoriaBody').innerHTML = data.auditoria.map(a => `
-      <tr>
-        <td>${formatoFecha(a.created_at)}</td>
-        <td>${a.action}</td>
-        <td>${a.detail}</td>
-      </tr>
-    `).join('');
   } catch (err) {
     console.error(err);
   }
@@ -690,6 +682,12 @@ async function cargarDashboardAdmin() {
 
 /** Configura los controles administrativos */
 function configurarAdmin() {
+  // Registro de auditoría: ventana exclusiva del super admin
+  const btnAuditoria = document.getElementById('btnAuditoria');
+  if (btnAuditoria) {
+    btnAuditoria.addEventListener('click', () => window.open('auditoria.html', '_blank'));
+  }
+
   // Autocompletado de identidad del trabajador (DNI → RENIEC)
   let twDniTimeout = null;
   const twDni = document.getElementById('twDni');
