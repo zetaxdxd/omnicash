@@ -75,6 +75,10 @@ export const config = {
 
   // Máximo de cuentas que puede tener una misma persona (regla RENIEC)
   maxCuentasPorDni: Number(process.env.MAX_CUENTAS_POR_DNI ?? 2),
+
+  // Máximo de cuentas que pueden compartir un mismo correo (el correo
+  // NO es único: se rechaza solo a partir de la 4ª cuenta con el mismo correo)
+  maxCuentasPorCorreo: Number(process.env.MAX_CUENTAS_POR_CORREO ?? 3),
 };
 
 /** Duración de sesiones expresada en milisegundos (apoyo a config) */

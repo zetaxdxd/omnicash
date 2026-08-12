@@ -38,11 +38,25 @@ function mapToEntity(row) {
 }
 
 export const UserRepository = {
-  /** Busca un usuario por su correo electrónico (login, unicidad). */
+  /** Busca un usuario por su correo electrónico (recuperación de cuenta). */
   async findByEmail(email) {
     const db = await getDb();
-    const row = await db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+    const row = await db.prepare('SELECT * FROM users WHERE email = ? ORDER BY id ASC').get(email);
     return mapToEntity(row);
+  },
+
+  /** Devuelve TODAS las cuentas con un correo (varias cuentas pueden compartir correo). */
+  async findAllByEmail(email) {
+    const db = await getDb();
+    const rows = await db.prepare('SELECT * FROM users WHERE email = ? ORDER BY id ASC').all(email);
+    return rows.map(mapToEntity);
+  },
+
+  /** Cuenta cuántas cuentas usan un correo (límite de 3 por correo). */
+  async countByEmail(email) {
+    const db = await getDb();
+    const row = await db.prepare('SELECT COUNT(*) AS n FROM users WHERE email = ?').get(email);
+    return Number(row.n);
   },
 
   /** Busca un usuario por su ID. */

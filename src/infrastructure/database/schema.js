@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
   apellido_materno  TEXT    NOT NULL,
   nombres           TEXT    NOT NULL,
   direccion         TEXT    NOT NULL,
-  email             TEXT    NOT NULL UNIQUE,
+  email             TEXT    NOT NULL,
   backup_email      TEXT    NOT NULL DEFAULT '',
   dni               TEXT    NOT NULL,
   phone             TEXT    NOT NULL,

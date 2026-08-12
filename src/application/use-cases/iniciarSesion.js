@@ -37,53 +37,67 @@ const HASH_FICTICIO = '$2a$10$CwTycUXWue0Thq9StjUM0uJ8VvI8p8A3X1QkYq0nTWyHe6fZ6l
  */
 export async function iniciarSesion({ email, password, userAgent = null, ip = null }) {
   const emailNormalizado = String(email ?? '').trim().toLowerCase();
-  const usuario = await UserRepository.findByEmail(emailNormalizado);
+  // Varias cuentas pueden compartir el mismo correo: se prueba la
+  // contraseña contra cada una y se autentica la que coincida.
+  const cuentas = await UserRepository.findAllByEmail(emailNormalizado);
 
-  // Anti-enumeración: la comparación se hace igual aunque no exista el usuario
-  const hashReal = usuario ? usuario.passwordHash : HASH_FICTICIO;
-  const passwordOk = await PasswordService.verify(password ?? '', hashReal);
+  let usuario = null;
+  if (cuentas.length) {
+    for (const cuenta of cuentas) {
+      if (await PasswordService.verify(password ?? '', cuenta.passwordHash)) {
+        usuario = cuenta;
+        break;
+      }
+    }
+  } else {
+    // Anti-enumeración: la comparación se hace igual aunque no exista el correo
+    await PasswordService.verify(password ?? '', HASH_FICTICIO);
+  }
 
   if (!usuario) {
-    throw new InvalidCredentialsError();
-  }
+    // Contraseña incorrecta para todas las cuentas: registrar intento fallido
+    // en la primera cuenta del correo (el bloqueo protege el correo completo).
+    const primera = cuentas[0] ?? null;
+    if (primera) {
+      const bloqueado = primera.registrarIntentoFallido(config.loginMaxAttempts, config.loginBlockMinutes);
+      await UserRepository.update(primera);
 
-  // Bloqueo temporal por fuerza bruta (previo a verificar contraseña)
-  if (usuario.isLoginBlocked) {
-    throw new ForbiddenError(
-      `Demasiados intentos fallidos. Tu acceso está bloqueado temporalmente; reintenta en ${usuario.loginBlockMinutesLeft} minuto(s)`
-    );
-  }
+      if (bloqueado) {
+        // Alerta de seguridad al correo real del cliente
+        enviarAlertaFuerzaBruta(primera.email, {
+          minutosBloqueo: config.loginBlockMinutes,
+          ip,
+          agente: userAgent,
+        }).catch(() => {});
+        await AuditRepository.log({
+          actorId: primera.id,
+          action: 'LOGIN_BLOQUEADO',
+          detail: `Login bloqueado por intentos fallidos (IP ${ip ?? 'desconocida'}, ${userAgent ?? '? '}). ${config.loginBlockMinutes} minutos`,
+        });
+        throw new ForbiddenError(
+          `Demasiados intentos fallidos. Tu acceso quedó bloqueado ${config.loginBlockMinutes} minutos y enviamos una alerta a tu correo`
+        );
+      }
 
-  if (!passwordOk) {
-    const bloqueado = usuario.registrarIntentoFallido(config.loginMaxAttempts, config.loginBlockMinutes);
-    await UserRepository.update(usuario);
-
-    if (bloqueado) {
-      // Alerta de seguridad al correo real del cliente
-      enviarAlertaFuerzaBruta(usuario.email, {
-        minutosBloqueo: config.loginBlockMinutes,
-        ip,
-        agente: userAgent,
-      }).catch(() => {});
-      await AuditRepository.log({
-        actorId: usuario.id,
-        action: 'LOGIN_BLOQUEADO',
-        detail: `Login bloqueado por intentos fallidos (IP ${ip ?? 'desconocida'}, ${userAgent ?? '? '}). ${config.loginBlockMinutes} minutos`,
-      });
-      throw new ForbiddenError(
-        `Demasiados intentos fallidos. Tu acceso quedó bloqueado ${config.loginBlockMinutes} minutos y enviamos una alerta a tu correo`
+      const restantes = config.loginMaxAttempts - primera.loginAttempts;
+      throw new InvalidCredentialsError(
+        `Correo o contraseña incorrectos. Te quedan ${restantes} intento(s) antes de bloquear tu acceso temporalmente`
       );
     }
 
-    const restantes = config.loginMaxAttempts - usuario.loginAttempts;
-    throw new InvalidCredentialsError(
-      `Correo o contraseña incorrectos. Te quedan ${restantes} intento(s) antes de bloquear tu acceso temporalmente`
-    );
+    throw new InvalidCredentialsError();
   }
 
   // Contraseña correcta: reinicia el contador anti fuerza bruta
   usuario.reiniciarIntentosFallidos();
   await UserRepository.update(usuario);
+
+  // Bloqueo temporal por fuerza bruta (aunque la contraseña sea correcta)
+  if (usuario.isLoginBlocked) {
+    throw new ForbiddenError(
+      `Demasiados intentos fallidos. Tu acceso está bloqueado temporalmente; reintenta en ${usuario.loginBlockMinutesLeft} minuto(s)`
+    );
+  }
 
   // El correo debe estar verificado (identidad confirmada)
   if (!usuario.isEmailVerified) {

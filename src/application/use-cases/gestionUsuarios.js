@@ -14,6 +14,7 @@ import { AuditRepository } from '../../infrastructure/repositories/AuditReposito
 import { PasswordService } from '../../infrastructure/security/password.js';
 import { normalizarDni } from '../../infrastructure/security/peru.js';
 import { consultarDni, identidadCoincide } from '../../infrastructure/reniec/consultaDni.js';
+import { config } from '../../infrastructure/config.js';
 import { User } from '../../domain/entities/User.js';
 import { NotFoundError, ForbiddenError, BusinessRuleViolationError, ConflictError } from '../../domain/errors/DomainError.js';
 
@@ -79,8 +80,12 @@ export async function crearTrabajador({
   }
 
   const emailNormalizado = String(email).trim().toLowerCase();
-  if (await UserRepository.findByEmail(emailNormalizado)) {
-    throw new ConflictError('Ya existe una cuenta con ese correo');
+  // El correo NO es único: varias cuentas pueden compartirlo (el trabajador
+  // suele usar el correo del banco). Se rechaza solo si ya hay 3+ cuentas.
+  if (await UserRepository.countByEmail(emailNormalizado) >= config.maxCuentasPorCorreo) {
+    throw new ConflictError(
+      `Ese correo ya está en uso por ${config.maxCuentasPorCorreo} cuentas: no se permite crear más con el mismo correo`
+    );
   }
 
   // Datos de identidad del trabajador (expediente KYC del banco)
@@ -124,6 +129,9 @@ export async function crearTrabajador({
     apellidoPaterno: paterno,
     apellidoMaterno: materno,
     nombres: pila,
+    // El trabajador es contratado por el banco con identidad validada
+    // (RENIEC): su correo se considera verificado desde el inicio
+    emailVerified: true,
   });
   const guardado = await UserRepository.insert(usuario);
 
