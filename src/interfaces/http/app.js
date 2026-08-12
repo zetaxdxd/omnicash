@@ -39,6 +39,36 @@ export function createApp() {
   // Health check para monitoreo
   app.get('/api/health', (req, res) => res.json({ ok: true, nombre: 'OmniCash', tiempo: new Date().toISOString() }));
 
+  // Diagnóstico SMTP: prueba el envío con el proveedor configurado (solo datos de error, no credenciales)
+  app.get('/api/health/smtp', async (req, res) => {
+    const t0 = Date.now();
+    try {
+      const { config } = await import('../../infrastructure/config.js');
+      if (!config.smtpUser || !config.smtpPassword) {
+        return res.json({ ok: false, motivo: 'SMTP_USER/SMTP_PASSWORD no configurados', tiempoMs: Date.now() - t0 });
+      }
+      const nodemailer = await import('nodemailer');
+      const t = nodemailer.createTransport({
+        host: config.smtpHost,
+        port: config.smtpPort,
+        secure: config.smtpPort === 465,
+        auth: { user: config.smtpUser, pass: config.smtpPassword },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+      await t.sendMail({
+        from: `"${config.emailFrom}" <${config.smtpUser}>`,
+        to: config.smtpUser,
+        subject: 'Diagnóstico OmniCash',
+        text: 'Prueba de envío SMTP desde OmniCash.',
+      });
+      res.json({ ok: true, host: config.smtpHost, puerto: config.smtpPort, tiempoMs: Date.now() - t0 });
+    } catch (e) {
+      res.json({ ok: false, host: config.smtpHost, puerto: config.smtpPort, error: e.message.split('\n')[0].slice(0, 300), tiempoMs: Date.now() - t0 });
+    }
+  });
+
   // 404 para rutas API desconocidas
   app.use('/api', rutaNoEncontrada);
 
