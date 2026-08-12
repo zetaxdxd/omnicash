@@ -19,7 +19,36 @@ import {
   iniciar2fa, confirmar2fa, desactivar2fa,
   listarSesiones, revocarSesion, revocarTodasSesiones,
 } from '../../../application/use-cases/seguridadCuenta.js';
+import { consultarDni } from '../../../infrastructure/reniec/consultaDni.js';
+import { normalizarDni } from '../../../infrastructure/security/peru.js';
+import { NotFoundError } from '../../../domain/errors/DomainError.js';
 import QRCode from 'qrcode';
+
+/**
+ * GET /api/auth/dni/:numero — autocompleta los datos de identidad del DNI.
+ * Público: el cliente escribe su DNI en el registro y el sistema rellena
+ * automáticamente apellidos y nombres (validación RENIEC en vivo).
+ */
+export async function consultarDniHandler(req, res, next) {
+  try {
+    const dni = normalizarDni(req.params.numero);
+    if (!dni) {
+      return res.status(400).json({ error: 'DNI inválido: debe tener 8 dígitos' });
+    }
+    const identidad = await consultarDni(dni.slice(0, 8));
+    if (!identidad) {
+      throw new NotFoundError('No pudimos verificar el DNI. Completa tus datos manualmente');
+    }
+    res.json({
+      dni: dni.slice(0, 8),
+      paterno: identidad.apellidoPaterno,
+      materno: identidad.apellidoMaterno,
+      nombres: identidad.nombres,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
 /** POST /api/auth/registro — solicita apertura de cuenta y envía el OTP */
 export async function registrar(req, res, next) {

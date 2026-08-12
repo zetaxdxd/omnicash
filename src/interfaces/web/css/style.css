@@ -37,6 +37,15 @@ body {
   line-height: 1.4;
 }
 
+.auth-hint-inline {
+  font-size: 0.8rem;
+  color: #777;
+  margin: -6px 0 10px;
+  line-height: 1.3;
+}
+.auth-hint-inline.ok { color: #1a7f37; }
+.auth-hint-inline.warn { color: #b45309; }
+
 /* Agrupación de campos del registro */
 .field-group-title {
   font-size: 0.8rem;

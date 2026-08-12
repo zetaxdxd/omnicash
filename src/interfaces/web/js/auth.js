@@ -127,6 +127,43 @@ function guardarSesion(data) {
   window.location.href = '/dashboard.html';
 }
 
+// ---------- Autocompletado de identidad por DNI (RENIEC) ----------
+let dniTimeout = null;
+$('regDni').addEventListener('input', () => {
+  const dni = $('regDni').value.replace(/\D/g, '').slice(0, 8);
+  $('regDni').value = dni;
+  const status = $('regDniStatus');
+  if (dni.length !== 8) {
+    status.textContent = 'Escribe tu DNI y tus datos se autocompletan';
+    status.className = 'auth-hint-inline';
+    return;
+  }
+  clearTimeout(dniTimeout);
+  dniTimeout = setTimeout(async () => {
+    status.textContent = 'Verificando con RENIEC...';
+    status.className = 'auth-hint-inline';
+    try {
+      const res = await fetch(API + '/auth/dni/' + dni);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Error del servidor');
+      $('regPaterno').value = data.paterno || '';
+      $('regMaterno').value = data.materno || '';
+      $('regNombres').value = data.nombres || '';
+      $('regPaterno').readOnly = true;
+      $('regMaterno').readOnly = true;
+      $('regNombres').readOnly = true;
+      status.textContent = 'Datos confirmados con RENIEC';
+      status.className = 'auth-hint-inline ok';
+    } catch (err) {
+      status.textContent = err.message;
+      status.className = 'auth-hint-inline warn';
+      $('regPaterno').readOnly = false;
+      $('regMaterno').readOnly = false;
+      $('regNombres').readOnly = false;
+    }
+  }, 500);
+});
+
 // ---------- Login paso 1: contraseña ----------
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();

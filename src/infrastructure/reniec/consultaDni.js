@@ -44,10 +44,18 @@ export async function consultarDni(dni) {
   try {
     const url = new URL(reniecApiUrl);
     url.searchParams.set('numero', dni);
-    url.searchParams.set('token', reniecToken);
 
-    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return null;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${reniecToken}` },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) {
+      // Algunos proveedores aceptan el token como query param en vez de header
+      url.searchParams.set('token', reniecToken);
+      const res2 = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      if (!res2.ok) return null;
+      return extraer(await res2.json());
+    }
 
     const datos = await res.json();
     const identidad = extraer(datos);

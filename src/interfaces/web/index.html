@@ -143,17 +143,18 @@
       <p class="auth-hint">Tu identidad será verificada: el código llega a tu correo.</p>
 
       <h3 class="field-group-title">Datos personales</h3>
+      <label>DNI (8 dígitos)
+        <input type="text" id="regDni" placeholder="73148217" maxlength="8" inputmode="numeric" autocomplete="off" required>
+      </label>
+      <p id="regDniStatus" class="auth-hint-inline">Escribe tu DNI y tus datos se autocompletan</p>
       <label>Apellido paterno
-        <input type="text" id="regPaterno" placeholder="Fernández" required>
+        <input type="text" id="regPaterno" placeholder="Fernández" autocomplete="off" required>
       </label>
       <label>Apellido materno
-        <input type="text" id="regMaterno" placeholder="Llanos" required>
+        <input type="text" id="regMaterno" placeholder="Llanos" autocomplete="off" required>
       </label>
       <label>Nombres
-        <input type="text" id="regNombres" placeholder="Elias" required>
-      </label>
-      <label>DNI (8 dígitos)
-        <input type="text" id="regDni" placeholder="73148217" maxlength="9" required>
+        <input type="text" id="regNombres" placeholder="Elias" autocomplete="off" required>
       </label>
       <label>Dirección (calle, número, distrito)
         <input type="text" id="regDireccion" placeholder="Av. Los Álamos 123 - Miraflores" required>

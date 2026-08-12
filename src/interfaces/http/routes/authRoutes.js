@@ -12,11 +12,15 @@ import {
   recuperar, confirmarRecuperacionHandler,
   solicitarCambioIdentidadHandler, aplicarCambioIdentidadHandler,
   cambiarContrasenaHandler,
+  consultarDniHandler,
 } from '../controllers/authController.js';
 import { autenticar } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
 
 export const authRoutes = Router();
+
+// Autocompletado de identidad: DNI → nombres y apellidos (RENIEC)
+authRoutes.get('/dni/:numero', consultarDniHandler);
 
 // ----- Flujo de apertura de cuenta con verificación de identidad -----
 authRoutes.post('/registro',
