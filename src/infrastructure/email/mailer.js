@@ -84,7 +84,7 @@ async function enviarCorreo({ para, codigo, asunto, texto }) {
   }
   console.log(`[correo] Enviando a ${para} — ${asunto}`);
   await enviarConRespaldo(smtp, {
-    from: `"${config.emailFrom}" <${config.smtpUser}>`,
+    from: `"${config.emailFrom}" <${config.smtpFromEmail}>`,
     to: para,
     subject: asunto,
     html: `

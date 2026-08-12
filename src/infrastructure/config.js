@@ -58,6 +58,8 @@ export const config = {
   smtpPort: Number(process.env.SMTP_PORT ?? 587),
   smtpUser: process.env.SMTP_USER ?? process.env.GMAIL_USER ?? '',
   smtpPassword: process.env.SMTP_PASSWORD ?? process.env.GMAIL_APP_PASSWORD ?? '',
+  /** Remitente VERIFICADO en Brevo: debe ser un buzón real (ej. fernandezllanoselias@gmail.com) */
+  smtpFromEmail: process.env.SMTP_FROM_EMAIL ?? process.env.GMAIL_USER ?? process.env.SMTP_USER ?? '',
   emailFrom: process.env.EMAIL_FROM ?? 'OmniCash Banco',
 
   // Yape real: número (celular BCP) que recibe el dinero y nombre mostrado
