@@ -27,14 +27,16 @@ export const IDENTITY_CHANGE_PURPOSE = 'IDENTITY_CHANGE';
 /**
  * Valida que el DNI no supere el máximo de cuentas permitidas,
  * dejando fuera de la cuenta al propio usuario (que ya la tiene).
+ * Solo cuentan las cuentas de CLIENTE: las de administradores y
+ * trabajadores son personal del banco, no clientes.
  * @param {string} dni DNI normalizado
  * @param {number} exceptoId ID del usuario actual
  */
 async function validarLimiteCuentas(dni, exceptoId) {
   let cuentas = await UserRepository.countByDni(dni);
-  const usuariosMismoDni = (await UserRepository.findAll({ limit: 1000 }))
-    .filter(u => u.dni === dni && u.id !== exceptoId);
-  cuentas = Math.max(cuentas, usuariosMismoDni.length);
+  const clientesMismoDni = (await UserRepository.findAll({ limit: 1000 }))
+    .filter(u => u.dni === dni && u.id !== exceptoId && u.role === 'CLIENTE');
+  cuentas = Math.max(cuentas, clientesMismoDni.length);
   if (cuentas >= config.maxCuentasPorDni) {
     throw new ForbiddenError(
       `Este DNI ya tiene el máximo de ${config.maxCuentasPorDni} cuentas en OmniCash`

@@ -105,10 +105,14 @@ export const UserRepository = {
     await db.prepare('UPDATE users SET login_attempts = 0, blocked_until = NULL WHERE id = ?').run(Number(id));
   },
 
-  /** Cuenta las cuentas creadas con un DNI (máximo 2 por persona). */
+  /**
+   * Cuenta las CUENTAS DE CLIENTE creadas con un DNI (máximo 2 por persona).
+   * Las cuentas de administradores y trabajadores NO cuentan: son personal
+   * del banco, no clientes.
+   */
   async countByDni(dni) {
     const db = await getDb();
-    const row = await db.prepare('SELECT COUNT(*) AS n FROM users WHERE dni = ?').get(dni);
+    const row = await db.prepare('SELECT COUNT(*) AS n FROM users WHERE dni = ? AND role = ?').get(dni, 'CLIENTE');
     return Number(row.n);
   },
 

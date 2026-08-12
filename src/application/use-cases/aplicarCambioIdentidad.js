@@ -64,8 +64,9 @@ export async function aplicarCambioIdentidad({ userId, codigo, cambios = {} }) {
     throw new BusinessRuleViolationError('Indica tu dirección completa (calle, número, distrito)');
   }
   if (dniNuevo !== usuario.dni) {
+    // Solo cuentan las cuentas de CLIENTE: admin y trabajadores son personal del banco
     const mismosDni = (await UserRepository.findAll({ limit: 1000 })).filter(
-      u => u.dni === dniNuevo && u.id !== usuario.id
+      u => u.dni === dniNuevo && u.id !== usuario.id && u.role === 'CLIENTE'
     );
     if (mismosDni.length >= config.maxCuentasPorDni) {
       throw new BusinessRuleViolationError(
