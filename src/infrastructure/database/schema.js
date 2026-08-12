@@ -66,6 +66,14 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at   TEXT    NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS pending_registrations (
+  id         INTEGER PRIMARY KEY AUTOINCREMENT,
+  email      TEXT    NOT NULL UNIQUE,
+  data_json  TEXT    NOT NULL,
+  expires_at TEXT    NOT NULL,
+  created_at TEXT    NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS verification_codes (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   email      TEXT    NOT NULL,
@@ -163,6 +171,14 @@ export const SCHEMA_POSTGRES = [
   used_at      TEXT,
   last_used_at TEXT,
   created_at   TEXT      NOT NULL
+)`,
+
+  `CREATE TABLE IF NOT EXISTS pending_registrations (
+  id         BIGSERIAL PRIMARY KEY,
+  email      TEXT      NOT NULL UNIQUE,
+  data_json  TEXT      NOT NULL,
+  expires_at TEXT      NOT NULL,
+  created_at TEXT      NOT NULL
 )`,
 
   `CREATE TABLE IF NOT EXISTS verification_codes (

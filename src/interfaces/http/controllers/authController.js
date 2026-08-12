@@ -6,6 +6,7 @@
  */
 
 import { solicitarRegistro, emitirCodigoVerificacion } from '../../../application/use-cases/registrarUsuario.js';
+import { PendingRegistrationRepository } from '../../../infrastructure/repositories/PendingRegistrationRepository.js';
 import { verificarEmail } from '../../../application/use-cases/verificarEmail.js';
 import { iniciarSesion } from '../../../application/use-cases/iniciarSesion.js';
 import { verificarSegundoFactor } from '../../../application/use-cases/verificarSegundoFactor.js';
@@ -78,8 +79,12 @@ export async function verificar(req, res, next) {
 /** POST /api/auth/registro/reenviar — envía un código nuevo */
 export async function reenviarCodigo(req, res, next) {
   try {
-    const { email } = req.body ?? {};
-    await emitirCodigoVerificacion(String(email ?? '').trim().toLowerCase());
+    const email = String(req.body?.email ?? '').trim().toLowerCase();
+    const pendiente = await PendingRegistrationRepository.findByEmail(email);
+    if (!pendiente || new Date(pendiente.expiresAt) <= new Date()) {
+      throw new NotFoundError('No hay una solicitud de registro pendiente para este correo');
+    }
+    await emitirCodigoVerificacion(email);
     res.json({ mensaje: 'Te enviamos un código nuevo por correo', reenviado: true });
   } catch (error) {
     next(error);
