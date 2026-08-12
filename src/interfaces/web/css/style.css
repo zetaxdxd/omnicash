@@ -315,6 +315,36 @@ body {
 }
 .icon-btn:hover { background: #eee; }
 
+/* Botón de soporte en la barra */
+.nav-soporte {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: #25D366; color: #fff;
+  border: none; border-radius: 999px;
+  padding: 8px 14px; font-size: 13.5px; font-weight: 600;
+  cursor: pointer; transition: filter .15s;
+}
+.nav-soporte:hover { filter: brightness(1.08); }
+.nav-soporte span { line-height: 1; }
+
+/* Items del modal de soporte */
+.soporte-item {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 12px;
+  background: #f7f9fc; border: 1px solid #e5e9f0; border-radius: 10px;
+  cursor: pointer; transition: border-color .15s, background .15s;
+  margin-bottom: 8px; text-align: left;
+}
+.soporte-item:hover { border-color: #25D366; background: #f0fbf4; }
+.soporte-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: var(--marino); color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 16px;
+}
+.soporte-info { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.soporte-info strong { font-size: 14px; color: var(--texto); }
+.soporte-wa { color: #25D366; display: inline-flex; flex-shrink: 0; }
+
 /* Menú desplegable de configuración */
 .nav-user-wrap { position: relative; display: flex; align-items: center; gap: 10px; }
 .conf-menu {

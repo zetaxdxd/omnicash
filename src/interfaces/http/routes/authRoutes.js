@@ -12,7 +12,7 @@ import {
   recuperar, confirmarRecuperacionHandler,
   solicitarCambioIdentidadHandler, aplicarCambioIdentidadHandler,
   cambiarContrasenaHandler,
-  consultarDniHandler,
+  consultarDniHandler, soporteHandler,
 } from '../controllers/authController.js';
 import { autenticar } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
@@ -21,6 +21,9 @@ export const authRoutes = Router();
 
 // Autocompletado de identidad: DNI → nombres y apellidos (RENIEC)
 authRoutes.get('/dni/:numero', consultarDniHandler);
+
+// Equipo de soporte (requiere sesión): nombre + WhatsApp de contacto
+authRoutes.get('/soporte', autenticar, soporteHandler);
 
 // ----- Flujo de apertura de cuenta con verificación de identidad -----
 authRoutes.post('/registro',

@@ -27,6 +27,8 @@ export const MIN_PASSWORD_LENGTH = 8;
 
 /** Formato de teléfono peruano: 9 dígitos empezando en 9 */
 const PHONE_REGEX = /^9\d{8}$/;
+/** Formato de WhatsApp: 51 (código de país) + 9 dígitos (ej: 51987654321) */
+const WHATSAPP_REGEX = /^51\d{9}$/;
 
 /**
  * Valida la política de contraseña bancaria:
@@ -78,7 +80,7 @@ export class User {
     dni = null, phone = null, emailVerified = false, totpSecret = null, totpEnabled = false,
     loginAttempts = 0, blockedUntil = null, createdAt = null,
     apellidoPaterno = null, apellidoMaterno = null, nombres = null, direccion = null,
-    backupEmail = '',
+    backupEmail = '', whatsapp = null,
   } = {}) {
     this.id = id;
     this.name = name;
@@ -89,6 +91,7 @@ export class User {
     this.state = state;
     this.dni = dni;
     this.phone = phone;
+    this.whatsapp = whatsapp;
     this.emailVerified = emailVerified;
     this.totpSecret = totpSecret;
     this.totpEnabled = totpEnabled;
@@ -127,6 +130,9 @@ export class User {
     }
     if (this.phone && !PHONE_REGEX.test(String(this.phone))) {
       throw new Error('Teléfono inválido: debe tener 9 dígitos y empezar con 9');
+    }
+    if (this.whatsapp && !WHATSAPP_REGEX.test(String(this.whatsapp))) {
+      throw new Error('WhatsApp inválido: debe ser 51 + 9 dígitos (ej: 51987654321)');
     }
   }
 

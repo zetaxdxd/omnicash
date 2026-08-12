@@ -62,10 +62,10 @@ export async function cambiarEstadoUsuario({ targetUserId, nuevoEstado, autorRol
 /**
  * Crea un trabajador del banco (empleado con rol TRABAJADOR).
  * Solo el administrador supremo puede contratar personal.
- * @param {object} input {name, email, password, autorRole, autorId}
+ * @param {object} input {name, email, password, whatsapp, autorRole, autorId}
  * @returns {object} usuario creado
  */
-export async function crearTrabajador({ name, email, password, autorRole, autorId }) {
+export async function crearTrabajador({ name, email, password, whatsapp = '', autorRole, autorId }) {
   if (autorRole !== ROLES.ADMIN) {
     throw new ForbiddenError('Solo el administrador supremo puede crear trabajadores');
   }
@@ -75,12 +75,19 @@ export async function crearTrabajador({ name, email, password, autorRole, autorI
     throw new ConflictError('Ya existe una cuenta con ese correo');
   }
 
+  // WhatsApp de trabajo: acepta 9 dígitos (se agrega el 51 del Perú) o 51 + 9 dígitos
+  let whatsappNormalizado = String(whatsapp ?? '').replace(/\D/g, '');
+  if (whatsappNormalizado && /^9\d{8}$/.test(whatsappNormalizado)) {
+    whatsappNormalizado = '51' + whatsappNormalizado;
+  }
+
   const passwordHash = await PasswordService.hash(String(password));
   const usuario = new User({
     name: String(name).trim(),
     email: emailNormalizado,
     passwordHash,
     role: ROLES.TRABAJADOR,
+    whatsapp: whatsappNormalizado,
   });
   const guardado = await UserRepository.insert(usuario);
 

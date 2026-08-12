@@ -24,6 +24,7 @@ function mapToEntity(row) {
     backupEmail: row.backup_email,
     dni: row.dni,
     phone: row.phone,
+    whatsapp: row.whatsapp,
     passwordHash: row.password_hash,
     role: row.role,
     state: row.state,
@@ -55,11 +56,12 @@ export const UserRepository = {
   async insert(user) {
     const db = await getDb();
     const result = await db.prepare(`
-      INSERT INTO users (name, apellido_paterno, apellido_materno, nombres, direccion, email, backup_email, dni, phone, password_hash, role, state, email_verified, totp_secret, totp_enabled, login_attempts, blocked_until, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (name, apellido_paterno, apellido_materno, nombres, direccion, email, backup_email, dni, phone, whatsapp, password_hash, role, state, email_verified, totp_secret, totp_enabled, login_attempts, blocked_until, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
-      user.fullName, user.apellidoPaterno, user.apellidoMaterno, user.nombres, user.direccion,
-      user.email, user.backupEmail ?? '', user.dni, user.phone, user.passwordHash, user.role, user.state,
+      user.fullName, user.apellidoPaterno ?? '', user.apellidoMaterno ?? '', user.nombres ?? '',
+      user.direccion ?? '', user.email, user.backupEmail ?? '', user.dni ?? '', user.phone ?? '',
+      user.whatsapp ?? '', user.passwordHash, user.role, user.state,
       user.emailVerified ? 1 : 0, user.totpSecret, user.totpEnabled ? 1 : 0,
       user.loginAttempts, user.blockedUntil, user.createdAt
     );
@@ -71,13 +73,14 @@ export const UserRepository = {
     const db = await getDb();
     await db.prepare(`
       UPDATE users SET name = ?, apellido_paterno = ?, apellido_materno = ?, nombres = ?, direccion = ?,
-        email = ?, backup_email = ?, dni = ?, phone = ?, state = ?, role = ?,
+        email = ?, backup_email = ?, dni = ?, phone = ?, whatsapp = ?, state = ?, role = ?,
         email_verified = ?, totp_secret = ?, totp_enabled = ?,
         login_attempts = ?, blocked_until = ?
       WHERE id = ?
     `).run(
       user.fullName, user.apellidoPaterno, user.apellidoMaterno, user.nombres, user.direccion,
-      user.email, user.backupEmail ?? '', user.dni, user.phone, user.state, user.role,
+      user.email, user.backupEmail ?? '', user.dni, user.phone, user.whatsapp ?? '',
+      user.state, user.role,
       user.emailVerified ? 1 : 0, user.totpSecret, user.totpEnabled ? 1 : 0,
       user.loginAttempts, user.blockedUntil, Number(user.id)
     );

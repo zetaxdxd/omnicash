@@ -15,6 +15,10 @@
       <div class="logo-text"><h1>Omni<span>Cash</span></h1></div>
     </div>
     <div class="nav-right">
+      <button id="btnSoporte" class="nav-soporte" title="Centro de soporte" aria-label="Centro de soporte">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+        <span>Soporte</span>
+      </button>
       <div class="nav-user-wrap" id="navUserWrap">
         <span id="userName" class="nav-user">—</span>
         <span class="nav-avatar" id="navAvatar">—</span>
@@ -192,6 +196,7 @@
         <form id="crearTrabajadorForm">
           <input type="text" id="twName" placeholder="Nombre completo" required>
           <input type="email" id="twEmail" placeholder="correo@omnicash.com" required>
+          <input type="text" id="twWhatsapp" placeholder="WhatsApp de trabajo: 987654321 (opcional)" inputmode="numeric">
           <input type="password" id="twPassword" placeholder="Contraseña" required>
           <button class="btn-primary" type="submit">Crear trabajador</button>
         </form>
@@ -210,6 +215,19 @@
       </div>
     </section>
   </main>
+
+  <!-- Modal de soporte: equipo de atención y contacto por WhatsApp -->
+  <div id="soporteModal" class="modal hidden">
+    <div class="modal-box">
+      <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg> Centro de soporte</h3>
+      <p class="card-sub">Seleccione al ejecutivo de atención. Al hacer clic se abrirá WhatsApp con su información para enviarle su consulta.</p>
+      <div id="soporteLista" style="margin-top:12px"></div>
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button id="soporteCerrar" class="btn-outline">Cerrar</button>
+      </div>
+      <p class="card-sub" id="soporteMsg" style="margin-top:10px"></p>
+    </div>
+  </div>
 
   <!-- Modal de aprobación de operaciones: contraseña + código del correo -->
   <div id="reauthModal" class="modal hidden">

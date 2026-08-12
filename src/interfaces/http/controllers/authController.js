@@ -6,6 +6,7 @@
  */
 
 import { solicitarRegistro, emitirCodigoVerificacion } from '../../../application/use-cases/registrarUsuario.js';
+import { listarSoportes } from '../../../application/use-cases/listarSoportes.js';
 import { PendingRegistrationRepository } from '../../../infrastructure/repositories/PendingRegistrationRepository.js';
 import { verificarEmail } from '../../../application/use-cases/verificarEmail.js';
 import { iniciarSesion } from '../../../application/use-cases/iniciarSesion.js';
@@ -46,6 +47,15 @@ export async function consultarDniHandler(req, res, next) {
       materno: identidad.apellidoMaterno,
       nombres: identidad.nombres,
     });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/auth/soporte — equipo de soporte con su WhatsApp (sesión activa) */
+export async function soporteHandler(req, res, next) {
+  try {
+    res.json(await listarSoportes());
   } catch (error) {
     next(error);
   }

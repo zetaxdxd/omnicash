@@ -240,6 +240,52 @@ async function guardarContrasena() {
   }
 }
 
+// ---------- Centro de soporte (equipo + WhatsApp) ----------
+
+/** Abre el modal y carga el equipo de soporte desde el servidor */
+async function abrirSoporte() {
+  $('soporteMsg').textContent = '';
+  $('soporteLista').innerHTML = '<p class="card-sub">Cargando equipo de soporte...</p>';
+  $('soporteModal').classList.remove('hidden');
+  try {
+    const data = await peticion('/auth/soporte');
+    const items = data.soportes;
+    if (!items.length) {
+      $('soporteLista').innerHTML = '<p class="card-sub">Por el momento no hay ejecutivos de soporte disponibles.</p>';
+      return;
+    }
+    $('soporteLista').innerHTML = items.map((s) => {
+      const wa = s.whatsapp ? `https://wa.me/${s.whatsapp}?text=${encodeURIComponent('Hola, soy cliente de OmniCash y necesito ayuda.')}` : null;
+      const nombre = s.name || 'Ejecutivo de soporte';
+      const sub = wa ? `<span class="card-sub">WhatsApp: +${s.whatsapp}</span>` : `<span class="card-sub">${s.email}</span>`;
+      return `
+        <button class="soporte-item" data-wa="${wa || ''}">
+          <span class="soporte-avatar">${nombre.trim().charAt(0).toUpperCase()}</span>
+          <span class="soporte-info">
+            <strong>${nombre}</strong>
+            ${sub}
+          </span>
+          ${wa ? '<span class="soporte-wa"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2zm5.83 14.26c-.24.68-1.4 1.3-1.93 1.35-.52.05-1.18.24-3.98-.83-3.36-1.3-5.47-4.66-5.63-4.88-.16-.21-1.35-1.79-1.35-3.42 0-1.63.86-2.43 1.16-2.77.3-.33.66-.42.88-.42.22 0 .44 0 .63.01.2.01.47-.08.73.56.27.64.92 2.23 1 2.39.08.16.14.35.03.56-.11.21-.17.34-.33.53-.16.19-.34.42-.49.57-.16.16-.33.34-.15.67.18.33.81 1.34 1.74 2.17 1.2 1.07 2.2 1.4 2.51 1.56.31.16.5.13.68-.08.18-.21.78-.91.99-1.22.21-.31.42-.26.7-.16.29.11 1.84.87 2.15 1.03.32.16.53.24.6.37.08.14.08.8-.16 1.47z"/></svg></span>' : ''}
+        </button>
+      `;
+    }).join('');
+  } catch (err) {
+    $('soporteMsg').textContent = err.message;
+  }
+}
+
+$('btnSoporte').addEventListener('click', abrirSoporte);
+$('soporteCerrar').addEventListener('click', () => $('soporteModal').classList.add('hidden'));
+
+/** Al hacer clic en un ejecutivo: abre WhatsApp con el mensaje precargado */
+document.getElementById('soporteLista').addEventListener('click', (e) => {
+  const item = e.target.closest('.soporte-item');
+  if (!item) return;
+  const wa = item.dataset.wa;
+  if (!wa) { $('soporteMsg').textContent = 'Este ejecutivo aún no tiene WhatsApp configurado.'; return; }
+  window.open(wa, '_blank');
+});
+
 // ---------- Formato ----------
 function formatoCreditos(n) {
   return Number(n).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -653,6 +699,7 @@ function configurarAdmin() {
           name: $('twName').value.trim(),
           email: $('twEmail').value.trim(),
           password: $('twPassword').value,
+          whatsapp: $('twWhatsapp').value.trim(),
         }, rt);
         $('twMsg').textContent = 'Trabajador creado correctamente';
         $('twMsg').style.color = 'var(--verde)';
