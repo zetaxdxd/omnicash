@@ -22,29 +22,29 @@ function mostrarFormulario(visible, ocultos) {
   ocultos.forEach(f => { if (f !== visible) f.classList.add('hidden'); });
 }
 
-// ---------- Cambio entre login y registro (botones divididos) ----------
+// ---------- Cambio entre login y registro (enlace inferior) ----------
 const TODOS_FORMULARIOS = ['loginForm', 'registerForm', 'otpForm', 'faForm', 'recoverForm', 'recoverConfirmForm'];
 
-/** Sincroniza las pestañas con el formulario visible (sin tocar mensajes) */
+/** Sincroniza el enlace inferior con el formulario visible */
 function sincronizarTabs() {
   const login = !$('loginForm').classList.contains('hidden');
-  $('tabLogin').classList.toggle('active', login);
-  $('tabRegister').classList.toggle('active', !login);
-  $('tabLogin').setAttribute('aria-selected', String(login));
-  $('tabRegister').setAttribute('aria-selected', String(!login));
+  const tabLogin = $('tabLogin'), tabRegister = $('tabRegister');
+  if (tabLogin) tabLogin.classList.toggle('active', login);
+  if (tabRegister) tabRegister.classList.toggle('active', !login);
   $('switchText').textContent = login ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?';
   $('switchLink').textContent = login ? 'Regístrate aquí' : 'Inicia sesión';
 }
 
-/** Muestra login o registro y sincroniza las pestañas de acceso */
+/** Muestra login o registro (y sincroniza el enlace inferior) */
 function irAPestana(login) {
   mostrarFormulario($(login ? 'loginForm' : 'registerForm'), TODOS_FORMULARIOS.map($));
   sincronizarTabs();
   mostrarMsg('', '');
 }
 
-$('tabLogin').addEventListener('click', () => irAPestana(true));
-$('tabRegister').addEventListener('click', () => irAPestana(false));
+const tabLoginEl = $('tabLogin'), tabRegisterEl = $('tabRegister');
+if (tabLoginEl) tabLoginEl.addEventListener('click', () => irAPestana(true));
+if (tabRegisterEl) tabRegisterEl.addEventListener('click', () => irAPestana(false));
 
 $('switchLink').addEventListener('click', (e) => {
   e.preventDefault();
