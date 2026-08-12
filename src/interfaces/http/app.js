@@ -48,9 +48,29 @@ export function createApp() {
   app.get('/api/health/smtp', async (req, res) => {
     const t0 = Date.now();
     const { config } = await import('../../infrastructure/config.js');
+    const net = await import('node:net');
+    const dns = await import('node:dns');
+
+    // 1) ¿Qué IPs resuelve el host y cuál usa?
+    const ips = await new Promise((resolve) => {
+      dns.lookup(config.smtpHost || 'smtp-relay.brevo.com', { all: true }, (e, r) => resolve(e ? [] : r.map(x => `${x.family} ${x.address}`)));
+    });
+
+    // 2) ¿Abre TCP puro a smtp-relay.brevo.com en varios puertos?
+    const puertos = [];
+    for (const puerto of [2525, 587, 465]) {
+      puertos.push(await new Promise((resolve) => {
+        const s = net.connect({ host: 'smtp-relay.brevo.com', port: puerto, timeout: 8000, family: 4 });
+        const inicio = Date.now();
+        s.on('connect', () => { s.destroy(); resolve({ puerto, estado: 'abre', ms: Date.now() - inicio }); });
+        s.on('timeout', () => { s.destroy(); resolve({ puerto, estado: 'timeout' }); });
+        s.on('error', (e) => { s.destroy(); resolve({ puerto, estado: e.code || e.message }); });
+      }));
+    }
+
     try {
       if (!config.smtpUser || !config.smtpPassword) {
-        return res.json({ ok: false, motivo: 'SMTP_USER/SMTP_PASSWORD no configurados', tiempoMs: Date.now() - t0 });
+        return res.json({ ok: false, motivo: 'SMTP_USER/SMTP_PASSWORD no configurados', ips, puertos, tiempoMs: Date.now() - t0 });
       }
       const nodemailer = await import('nodemailer');
       const t = nodemailer.createTransport({
@@ -69,10 +89,10 @@ export function createApp() {
         subject: 'Diagnóstico OmniCash',
         text: 'Prueba de envío SMTP desde OmniCash.',
       });
-      res.json({ ok: true, host: config.smtpHost, puerto: config.smtpPort, tiempoMs: Date.now() - t0 });
+      res.json({ ok: true, host: config.smtpHost, puerto: config.smtpPort, ips, puertos, tiempoMs: Date.now() - t0 });
     } catch (e) {
       const detalle = String((e && (e.message || e.response)) || e).split('\n')[0].slice(0, 300);
-      res.json({ ok: false, host: config.smtpHost, puerto: config.smtpPort, error: detalle, tiempoMs: Date.now() - t0 });
+      res.json({ ok: false, host: config.smtpHost, puerto: config.smtpPort, ips, puertos, error: detalle, tiempoMs: Date.now() - t0 });
     }
   });
 
