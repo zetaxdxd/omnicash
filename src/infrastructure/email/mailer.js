@@ -1,10 +1,11 @@
 /**
  * OmniCash - Infraestructura
  * Servicio de correo: envía los códigos de verificación y alertas
- * de seguridad usando SMTP de Gmail (contraseña de aplicación).
+ * de seguridad vía SMTP transaccional (Brevo por defecto; Gmail
+ * como respaldo si SMTP_HOST está vacío).
  *
- * Si no hay SMTP configurado (desarrollo), los códigos se muestran
- * en la consola del servidor con una advertencia clara.
+ * Brevo no bloquea conexiones desde datacenters (a diferencia de
+ * Gmail) y funciona sin fricción en Render.
  */
 
 import nodemailer from 'nodemailer';
@@ -12,15 +13,17 @@ import { config } from '../config.js';
 
 let transporter = null;
 
-/** Crea el transportador SMTP (465 segura primero, 587 STARTTLS como respaldo) */
+/** Crea el transportador SMTP una sola vez (patrón lazy singleton) */
 function obtenerTransporter() {
-  if (!config.gmailUser || !config.gmailAppPassword) return null;
+  if (!config.smtpUser || !config.smtpPassword) return null;
   if (!transporter) {
+    const host = config.smtpHost || 'smtp.gmail.com';
+    const secure = (config.smtpPort === 465) || (!config.smtpHost);
     transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: { user: config.gmailUser, pass: config.gmailAppPassword },
+      host,
+      port: config.smtpPort,
+      secure,
+      auth: { user: config.smtpUser, pass: config.smtpPassword },
       connectionTimeout: 10000,
       greetingTimeout: 10000,
       socketTimeout: 15000,
@@ -29,41 +32,57 @@ function obtenerTransporter() {
   return transporter;
 }
 
-/** Si el puerto 465 falla, reintenta por 587 (STARTTLS) sin bloquear al usuario */
+/** Si el host primario falla, reintenta con Gmail por 587 (último respaldo) */
 async function enviarConRespaldo(transporter, opciones, para) {
   try {
     await transporter.sendMail(opciones);
     return;
   } catch (error) {
-    console.error(`[correo] SMTP 465 falló (${para}): ${error.message}`);
+    console.error(`[correo] SMTP ${config.smtpHost || 'smtp.gmail.com'}:${config.smtpPort} falló (${para}): ${error.message}`);
+    if (config.smtpHost) {
+      // Respaldos: Gmail 465 → Gmail 587 (si el proveedor primario cayó)
+      const hosts = [
+        { host: 'smtp.gmail.com', port: 465, secure: true },
+        { host: 'smtp.gmail.com', port: 587, secure: false },
+      ];
+      for (const h of hosts) {
+        try {
+          const respaldo = nodemailer.createTransport({
+            host: h.host,
+            port: h.port,
+            secure: h.secure,
+            auth: { user: config.gmailUser, pass: config.gmailAppPassword },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 15000,
+          });
+          await respaldo.sendMail(opciones);
+          console.log(`[correo] Enviado por respaldo ${h.host}:${h.port}`);
+          return;
+        } catch (e2) {
+          console.error(`[correo] Respaldo ${h.host}:${h.port} falló: ${e2.message}`);
+        }
+      }
+    }
+    throw error;
   }
-  const respaldo = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: { user: config.gmailUser, pass: config.gmailAppPassword },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-  });
-  await respaldo.sendMail(opciones);
 }
 
 /**
  * Envía un correo con el código OTP (o lo muestra en consola en modo dev).
- * El código SIEMPRE se loguea en consola como respaldo de diagnóstico.
  * @param {object} params {para, codigo, asunto, texto}
  */
 async function enviarCorreo({ para, codigo, asunto, texto }) {
   const smtp = obtenerTransporter();
   if (!smtp) {
-    console.warn(`[correo] SMTP no configurado (GMAIL_USER / GMAIL_APP_PASSWORD). Para: ${para}`);
+    // Modo desarrollo: el código se loguea para poder probar el flujo completo
+    console.warn(`[correo] SMTP no configurado (SMTP_USER / SMTP_PASSWORD). Para: ${para}`);
     console.warn(`[correo] ${asunto}: ${texto} Codigo: ${codigo}`);
     return;
   }
   console.log(`[correo] Enviando a ${para} — ${asunto}`);
   await enviarConRespaldo(smtp, {
-    from: `"OmniCash Banco" <${config.gmailUser}>`,
+    from: `"${config.emailFrom}" <${config.smtpUser}>`,
     to: para,
     subject: asunto,
     html: `

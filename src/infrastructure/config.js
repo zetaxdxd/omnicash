@@ -53,9 +53,12 @@ export const config = {
   sessionTtl: process.env.SESSION_TTL ?? '2h',
   sensitiveOperationMin: Number(process.env.SENSITIVE_OPERATION_MIN ?? 100),
 
-  // Correo (Gmail con contraseña de aplicación)
-  gmailUser: process.env.GMAIL_USER ?? '',
-  gmailAppPassword: process.env.GMAIL_APP_PASSWORD ?? '',
+  // Correo transaccional: SMTP de Brevo (o Gmail con contraseña de aplicación como respaldo)
+  smtpHost: process.env.SMTP_HOST ?? '',
+  smtpPort: Number(process.env.SMTP_PORT ?? 587),
+  smtpUser: process.env.SMTP_USER ?? process.env.GMAIL_USER ?? '',
+  smtpPassword: process.env.SMTP_PASSWORD ?? process.env.GMAIL_APP_PASSWORD ?? '',
+  emailFrom: process.env.EMAIL_FROM ?? 'OmniCash Banco',
 
   // Yape real: número (celular BCP) que recibe el dinero y nombre mostrado
   yapeMerchantPhone: process.env.YAPE_MERCHANT_PHONE ?? '',
