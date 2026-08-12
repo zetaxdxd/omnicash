@@ -39,6 +39,28 @@ export function createApp() {
   // Health check para monitoreo
   app.get('/api/health', (req, res) => res.json({ ok: true, nombre: 'OmniCash', tiempo: new Date().toISOString() }));
 
+  // Diagnóstico del SMTP (solo dev: prueba la conectividad con Gmail)
+  app.get('/api/health/smtp', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') return res.json({ smtp: 'oculto' });
+    const t0 = Date.now();
+    try {
+      const { config } = await import('../../infrastructure/config.js');
+      if (!config.gmailUser || !config.gmailAppPassword) {
+        return res.json({ smtp: 'sin-configurar', tiempoMs: Date.now() - t0 });
+      }
+      const net = await import('node:net');
+      const resultado = await new Promise((resolve) => {
+        const s = net.connect({ host: 'smtp.gmail.com', port: 465, timeout: 8000 });
+        s.on('connect', () => { s.destroy(); resolve({ puerto: 465, estado: 'ok' }); });
+        s.on('timeout', () => { s.destroy(); resolve({ puerto: 465, estado: 'timeout' }); });
+        s.on('error', (e) => { s.destroy(); resolve({ puerto: 465, estado: 'error', detalle: e.code || e.message }); });
+      });
+      res.json({ smtp: 'configurado', ...resultado, tiempoMs: Date.now() - t0 });
+    } catch (e) {
+      res.json({ smtp: 'error', detalle: e.message, tiempoMs: Date.now() - t0 });
+    }
+  });
+
   // 404 para rutas API desconocidas
   app.use('/api', rutaNoEncontrada);
 
