@@ -37,7 +37,12 @@ export function createApp() {
   app.use('/api/admin', adminRoutes);
 
   // Health check para monitoreo
-  app.get('/api/health', (req, res) => res.json({ ok: true, nombre: 'OmniCash', tiempo: new Date().toISOString() }));
+  app.get('/api/health', (req, res) => res.json({
+    ok: true,
+    nombre: 'OmniCash',
+    version: process.env.RENDER_GIT_COMMIT?.slice(0, 7) ?? 'local',
+    tiempo: new Date().toISOString(),
+  }));
 
   // Diagnóstico SMTP: prueba el envío con el proveedor configurado (solo datos de error, no credenciales)
   app.get('/api/health/smtp', async (req, res) => {
