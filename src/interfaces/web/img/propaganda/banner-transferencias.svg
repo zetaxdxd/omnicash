@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 920" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Envía dinero al instante entre cuentas OmniCash">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3F4E69"/>
+      <stop offset="0.6" stop-color="#436A95"/>
+      <stop offset="1" stop-color="#5A9BC2"/>
+    </linearGradient>
+    <linearGradient id="cardA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4600D"/>
+      <stop offset="1" stop-color="#B34A09"/>
+    </linearGradient>
+    <linearGradient id="cardB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7FB6DE"/>
+      <stop offset="1" stop-color="#3F4E69"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD9B8"/>
+      <stop offset="1" stop-color="#F4600D"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9CD0F0" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#9CD0F0" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .eyebrow { font: 700 24px 'Segoe UI', system-ui, sans-serif; fill: #BDE3F7; letter-spacing: 7px; }
+      .h1 { font: 800 66px 'Segoe UI', system-ui, sans-serif; fill: #FFFFFF; }
+      .h2 { font: 800 96px 'Segoe UI', system-ui, sans-serif; fill: #FFB980; }
+      .sub { font: 500 27px 'Segoe UI', system-ui, sans-serif; fill: rgba(255,255,255,.92); }
+      .chip { font: 700 22px 'Segoe UI', system-ui, sans-serif; fill: #1F2D40; }
+      .foot { font: 600 20px 'Segoe UI', system-ui, sans-serif; fill: rgba(255,255,255,.7); letter-spacing: 2px; }
+      .card-label { font: 700 15px 'Segoe UI', system-ui, sans-serif; fill: rgba(255,255,255,.85); letter-spacing: 3px; }
+      .card-num { font: 700 32px 'Segoe UI', system-ui, sans-serif; fill: #FFFFFF; letter-spacing: 4px; }
+      .card-holder { font: 700 14px 'Segoe UI', system-ui, sans-serif; fill: #FFFFFF; }
+    </style>
+  </defs>
+
+  <rect width="800" height="920" fill="url(#bg)"/>
+  <circle cx="720" cy="160" r="240" fill="url(#glow)"/>
+  <circle cx="80" cy="700" r="200" fill="#FFFFFF" opacity="0.06"/>
+  <circle cx="760" cy="830" r="140" fill="#FFFFFF" opacity="0.07"/>
+
+  <!-- Cabecera -->
+  <text x="400" y="80" text-anchor="middle" class="eyebrow">TRANSFERENCIAS</text>
+  <text x="400" y="172" text-anchor="middle" class="h1">ENVÍA DINERO</text>
+  <text x="400" y="288" text-anchor="middle" class="h2">AL INSTANTE</text>
+  <text x="400" y="352" text-anchor="middle" class="sub">Entre cuentas OmniCash, sin costo y sin filas</text>
+
+  <!-- Tarjetas con flecha de envío -->
+  <g transform="rotate(-7 400 620)">
+    <rect x="240" y="500" width="320" height="196" rx="24" fill="url(#cardB)"/>
+    <rect x="264" y="522" width="96" height="66" rx="14" fill="#E8C988"/>
+    <text x="400" y="612" text-anchor="middle" class="card-num">6060 4821</text>
+    <text x="268" y="670" class="card-holder">EMISOR · OMNI</text>
+  </g>
+
+  <g transform="rotate(6 400 620)">
+    <rect x="240" y="500" width="320" height="196" rx="24" fill="url(#cardA)"/>
+    <rect x="264" y="522" width="96" height="66" rx="14" fill="#F5D9A8"/>
+    <text x="400" y="612" text-anchor="middle" class="card-num">6060 7314</text>
+    <text x="268" y="670" class="card-holder">RECEPTOR · CASH</text>
+  </g>
+
+  <!-- Relámpago del envío -->
+  <circle cx="400" cy="598" r="74" fill="#FFFFFF" opacity="0.92"/>
+  <path d="M398 545 l-34 62 h22 l-8 40 34 -64 h-22 z" fill="url(#bolt)"/>
+
+  <!-- Chips -->
+  <g>
+    <rect x="205" y="770" width="190" height="52" rx="26" fill="#FFFFFF"/>
+    <text x="300" y="803" text-anchor="middle" class="chip">RAPIDÍSIMO</text>
+    <rect x="409" y="770" width="186" height="52" rx="26" fill="#FFFFFF"/>
+    <text x="502" y="803" text-anchor="middle" class="chip">0% COMISIÓN</text>
+  </g>
+
+  <text x="400" y="910" text-anchor="middle" class="foot">OMNICASH · BANCO DIGITAL</text>
+</svg>

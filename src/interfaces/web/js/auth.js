@@ -9,11 +9,11 @@
 const $ = (id) => document.getElementById(id);
 const API = '/api';
 
-/** Muestra un mensaje en la caja de avisos */
+/** Muestra un mensaje en la caja de avisos (vacío = la oculta) */
 function mostrarMsg(texto, tipo = 'error') {
   const msg = $('authMsg');
   msg.textContent = texto;
-  msg.className = `auth-msg ${tipo}`;
+  msg.className = texto ? `auth-msg ${tipo}` : 'auth-msg hidden';
 }
 
 /** Muestra un formulario y oculta el resto */
@@ -22,15 +22,90 @@ function mostrarFormulario(visible, ocultos) {
   ocultos.forEach(f => { if (f !== visible) f.classList.add('hidden'); });
 }
 
-// ---------- Cambio entre login y registro ----------
+// ---------- Cambio entre login y registro (botones divididos) ----------
+const TODOS_FORMULARIOS = ['loginForm', 'registerForm', 'otpForm', 'faForm', 'recoverForm', 'recoverConfirmForm'];
+
+/** Sincroniza las pestañas con el formulario visible (sin tocar mensajes) */
+function sincronizarTabs() {
+  const login = !$('loginForm').classList.contains('hidden');
+  $('tabLogin').classList.toggle('active', login);
+  $('tabRegister').classList.toggle('active', !login);
+  $('tabLogin').setAttribute('aria-selected', String(login));
+  $('tabRegister').setAttribute('aria-selected', String(!login));
+  $('switchText').textContent = login ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?';
+  $('switchLink').textContent = login ? 'Regístrate aquí' : 'Inicia sesión';
+}
+
+/** Muestra login o registro y sincroniza las pestañas de acceso */
+function irAPestana(login) {
+  mostrarFormulario($(login ? 'loginForm' : 'registerForm'), TODOS_FORMULARIOS.map($));
+  sincronizarTabs();
+  mostrarMsg('', '');
+}
+
+$('tabLogin').addEventListener('click', () => irAPestana(true));
+$('tabRegister').addEventListener('click', () => irAPestana(false));
+
 $('switchLink').addEventListener('click', (e) => {
   e.preventDefault();
-  const mostrandoLogin = !$('loginForm').classList.contains('hidden');
-  mostrarFormulario(mostrandoLogin ? $('registerForm') : $('loginForm'),
-    [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverConfirmForm')]);
-  $('switchText').textContent = mostrandoLogin ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?';
-  $('switchLink').textContent = mostrandoLogin ? 'Inicia sesión' : 'Regístrate aquí';
+  irAPestana($('loginForm').classList.contains('hidden'));
 });
+
+// ---------- Carrusel de propaganda ----------
+(function carrusel() {
+  const total = document.querySelectorAll('.carousel-slide').length;
+  const dots = Array.from(document.querySelectorAll('.carousel-dot'));
+  let indice = 0;
+  let timer = null;
+  let pausado = false;
+
+  const progreso = 6000; // milisegundos por diapositiva
+
+  function irA(n) {
+    indice = (n + total) % total;
+    document.querySelectorAll('.carousel-slide').forEach((s, i) => {
+      s.classList.toggle('active', i === indice);
+    });
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === indice);
+      d.classList.remove('pausado');
+    });
+    reiniciar();
+  }
+
+  function reiniciar() {
+    clearInterval(timer);
+    if (pausado) return;
+    // La barra de progreso del punto activo avanza junto con el auto
+    dots[indice].classList.remove('active');
+    void dots[indice].offsetWidth; // reinicia la animación CSS
+    dots[indice].classList.add('active');
+    timer = setInterval(() => irA(indice + 1), progreso);
+  }
+
+  function pausar() {
+    pausado = true;
+    clearInterval(timer);
+    dots.forEach(d => d.classList.add('pausado'));
+  }
+  function reanudar() {
+    pausado = false;
+    dots.forEach(d => d.classList.remove('pausado'));
+    reiniciar();
+  }
+
+  const hero = $('heroCarousel');
+  hero.addEventListener('mouseenter', pausar);
+  hero.addEventListener('mouseleave', reanudar);
+  hero.addEventListener('touchstart', pausar, { passive: true });
+  hero.addEventListener('touchend', reanudar, { passive: true });
+
+  $('carPrev').addEventListener('click', () => irA(indice - 1));
+  $('carNext').addEventListener('click', () => irA(indice + 1));
+  dots.forEach(d => d.addEventListener('click', () => irA(Number(d.dataset.slide))));
+
+  irA(0);
+})();
 
 // ---------- Recuperación de contraseña ----------
 $('lnkRecuperar').addEventListener('click', (e) => {
@@ -40,8 +115,8 @@ $('lnkRecuperar').addEventListener('click', (e) => {
 });
 
 $('btnRecoverCancel').addEventListener('click', () => {
-  mostrarFormulario($('loginForm'),
-    [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverConfirmForm')]);
+  mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
+  sincronizarTabs();
 });
 
 // Paso 1: solicitar el código al correo de respaldo
@@ -84,16 +159,16 @@ $('recoverConfirmForm').addEventListener('submit', async (e) => {
     mostrarMsg('Contraseña restablecida. Inicia sesión con la nueva.', 'ok');
     $('loginEmail').value = '';
     $('loginPassword').value = '';
-    mostrarFormulario($('loginForm'),
-      [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverConfirmForm')]);
+    mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
+    sincronizarTabs();
   } catch (err) {
     mostrarMsg(err.message);
   }
 });
 
 $('btnRecoverConfirmCancel').addEventListener('click', () => {
-  mostrarFormulario($('loginForm'),
-    [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverConfirmForm')]);
+  mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
+  sincronizarTabs();
 });
 
 // ---------- Enviar peticiones con fetch ----------
@@ -201,7 +276,8 @@ $('faForm').addEventListener('submit', async (e) => {
 
 $('faCancelar').addEventListener('click', () => {
   sessionStorage.removeItem('omnicash_temporal');
-  mostrarFormulario($('loginForm'), [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverConfirmForm')]);
+  mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
+  sincronizarTabs();
   mostrarMsg('', '');
 });
 
@@ -266,7 +342,8 @@ $('otpForm').addEventListener('submit', async (e) => {
     // Vuelve al login con el correo precargado
     $('loginEmail').value = $('otpCorreo').textContent;
     $('loginPassword').value = '';
-    mostrarFormulario($('loginForm'), [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverConfirmForm')]);
+    mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
+    sincronizarTabs();
   } catch (err) {
     mostrarMsg(err.message);
   }

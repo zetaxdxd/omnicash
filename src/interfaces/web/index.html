@@ -20,30 +20,37 @@
           <img src="/img/omnicash.jpg" alt="OmniCash" class="hero-logo-img">
           <span class="hero-logo-text">Omni<span>Cash</span></span>
         </div>
-        <h2 class="hero-title">Tu banco digital,<br><em>sin sucursales y sin filas</em></h2>
-        <p class="hero-sub">
-          Apertura de cuenta en minutos con su DNI. Carga dinero real por Yape,
-          transfiere al instante y gestione su seguridad como en un banco grande.
-        </p>
 
-        <!-- Tarjeta bancaria de demostración -->
-        <div class="bank-card">
-          <div class="bank-card-top">
-            <img src="/img/omnicash.jpg" alt="OmniCash" class="bank-card-logo">
-            <span>Banco Digital</span>
+        <!-- Carrusel de propaganda (como los banners de los grandes bancos) -->
+        <div class="hero-carousel" id="heroCarousel">
+          <div class="carousel-track">
+            <div class="carousel-slide">
+              <img src="/img/propaganda/banner-yape.svg" alt="Recarga con Yape: tu saldo llega al instante">
+            </div>
+            <div class="carousel-slide">
+              <img src="/img/propaganda/banner-transferencias.svg" alt="Envía dinero al instante entre cuentas OmniCash">
+            </div>
+            <div class="carousel-slide">
+              <img src="/img/propaganda/banner-seguridad.svg" alt="Tu dinero protegido 24/7 con doble verificación">
+            </div>
+            <div class="carousel-slide">
+              <img src="/img/propaganda/banner-apertura.svg" alt="Abre tu cuenta en 5 minutos solo con tu DNI">
+            </div>
           </div>
-          <div class="bank-card-chip"></div>
-          <div class="bank-card-number">6060 •••• •••• ••••</div>
-          <div class="bank-card-bottom">
-            <div><span>TITULAR</span><strong>OmniCash</strong></div>
-            <div><span>VÁLIDA</span><strong>∞</strong></div>
-          </div>
-        </div>
 
-        <div class="hero-badges">
-          <span class="hero-badge b1"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="12" cy="13" r="3"/><path d="M7 7h1"/></svg> Cargas con Yape real</span>
-          <span class="hero-badge b2"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg> Doble verificación</span>
-          <span class="hero-badge b3"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg> CCI propia de 20 dígitos</span>
+          <button type="button" class="carousel-arrow prev" id="carPrev" aria-label="Anterior" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button type="button" class="carousel-arrow next" id="carNext" aria-label="Siguiente" tabindex="-1">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+
+          <div class="carousel-dots" id="carDots">
+            <button type="button" class="carousel-dot active" data-slide="0" aria-label="Diapositiva 1" tabindex="-1"></button>
+            <button type="button" class="carousel-dot" data-slide="1" aria-label="Diapositiva 2" tabindex="-1"></button>
+            <button type="button" class="carousel-dot" data-slide="2" aria-label="Diapositiva 3" tabindex="-1"></button>
+            <button type="button" class="carousel-dot" data-slide="3" aria-label="Diapositiva 4" tabindex="-1"></button>
+          </div>
         </div>
       </div>
 
@@ -60,6 +67,18 @@
         <h1>Omni<span>Cash</span></h1>
         <p>Banco digital, sin sucursales</p>
       </div>
+    </div>
+
+    <!-- Acceso dividido: Iniciar sesión / Registrarse -->
+    <div class="auth-tabs" role="tablist" aria-label="Acceso a OmniCash">
+      <button type="button" class="auth-tab active" id="tabLogin" role="tab" aria-selected="true">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
+        Iniciar sesión
+      </button>
+      <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false">
+        <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>
+        Registrarse
+      </button>
     </div>
 
     <!-- Mensaje de error o éxito -->

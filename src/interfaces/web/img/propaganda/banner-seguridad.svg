@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 920" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Tu dinero protegido 24/7 con doble verificación">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16202E"/>
+      <stop offset="0.55" stop-color="#26364C"/>
+      <stop offset="1" stop-color="#3F4E69"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5BE08B"/>
+      <stop offset="1" stop-color="#1FA855"/>
+    </linearGradient>
+    <radialGradient id="ring" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#5BE08B" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#5BE08B" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .eyebrow { font: 700 24px 'Segoe UI', system-ui, sans-serif; fill: #8FD9AC; letter-spacing: 7px; }
+      .h1 { font: 800 66px 'Segoe UI', system-ui, sans-serif; fill: #FFFFFF; }
+      .h2 { font: 800 96px 'Segoe UI', system-ui, sans-serif; fill: #6FDC98; }
+      .sub { font: 500 27px 'Segoe UI', system-ui, sans-serif; fill: rgba(255,255,255,.92); }
+      .chip { font: 700 21px 'Segoe UI', system-ui, sans-serif; fill: #16301F; }
+      .foot { font: 600 20px 'Segoe UI', system-ui, sans-serif; fill: rgba(255,255,255,.7); letter-spacing: 2px; }
+    </style>
+  </defs>
+
+  <rect width="800" height="920" fill="url(#bg)"/>
+  <circle cx="400" cy="620" r="330" fill="url(#ring)"/>
+  <circle cx="120" cy="150" r="170" fill="#FFFFFF" opacity="0.05"/>
+  <circle cx="700" cy="820" r="200" fill="#FFFFFF" opacity="0.05"/>
+
+  <!-- Cabecera -->
+  <text x="400" y="80" text-anchor="middle" class="eyebrow">SEGURIDAD DE BANCO GRANDE</text>
+  <text x="400" y="172" text-anchor="middle" class="h1">TU DINERO</text>
+  <text x="400" y="288" text-anchor="middle" class="h2">PROTEGIDO</text>
+  <text x="400" y="352" text-anchor="middle" class="sub">Doble verificación en cada operación</text>
+
+  <!-- Escudo con candado -->
+  <g transform="translate(400 640)">
+    <circle r="210" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="2" stroke-dasharray="6 14"/>
+    <circle r="160" fill="none" stroke="#FFFFFF" stroke-opacity="0.12" stroke-width="2"/>
+    <path d="M0 -150 C 95 -120 150 -60 150 15 C 150 100 70 155 0 178 C -70 155 -150 100 -150 15 C -150 -60 -95 -120 0 -150 Z" fill="url(#shield)"/>
+    <path d="M0 -130 C 75 -105 118 -55 118 12 C 118 82 55 128 0 148 C -55 128 -118 82 -118 12 C -118 -55 -75 -105 0 -130 Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="3"/>
+    <!-- Candado -->
+    <rect x="-34" y="-22" width="68" height="52" rx="12" fill="#FFFFFF"/>
+    <path d="M-18 -22 v -14 a18 18 0 0 1 36 0 v 14" fill="none" stroke="#FFFFFF" stroke-width="13" stroke-linecap="round"/>
+    <circle cy="2" r="9" fill="#1FA855"/>
+    <path d="M0 -6 v 8 m0 4 v 2" stroke="#1FA855" stroke-width="5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Chips -->
+  <g>
+    <rect x="188" y="830" width="204" height="52" rx="26" fill="#FFFFFF"/>
+    <text x="290" y="863" text-anchor="middle" class="chip">DOBLE VERIFICACIÓN</text>
+    <rect x="406" y="830" width="206" height="52" rx="26" fill="#FFFFFF"/>
+    <text x="509" y="863" text-anchor="middle" class="chip">AUDITORÍA 100%</text>
+  </g>
+
+  <text x="400" y="910" text-anchor="middle" class="foot">OMNICASH · BANCO DIGITAL</text>
+</svg>

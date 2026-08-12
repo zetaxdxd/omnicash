@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 920" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Abre tu cuenta en 5 minutos solo con tu DNI">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2C5F86"/>
+      <stop offset="0.6" stop-color="#5A9BC2"/>
+      <stop offset="1" stop-color="#8FC2DE"/>
+    </linearGradient>
+    <linearGradient id="dni" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F6FA"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .eyebrow { font: 700 24px 'Segoe UI', system-ui, sans-serif; fill: #EAF6FF; letter-spacing: 7px; }
+      .h1 { font: 800 62px 'Segoe UI', system-ui, sans-serif; fill: #FFFFFF; }
+      .h2 { font: 800 84px 'Segoe UI', system-ui, sans-serif; fill: #0E2F4A; }
+      .sub { font: 500 27px 'Segoe UI', system-ui, sans-serif; fill: rgba(255,255,255,.95); }
+      .chip { font: 700 21px 'Segoe UI', system-ui, sans-serif; fill: #0E2F4A; }
+      .foot { font: 600 20px 'Segoe UI', system-ui, sans-serif; fill: rgba(255,255,255,.75); letter-spacing: 2px; }
+      .dni-label { font: 700 13px 'Segoe UI', system-ui, sans-serif; fill: #7C8798; letter-spacing: 2px; }
+      .dni-num { font: 800 26px 'Segoe UI', system-ui, sans-serif; fill: #1F2D40; letter-spacing: 3px; }
+      .dni-name { font: 700 19px 'Segoe UI', system-ui, sans-serif; fill: #1F2D40; }
+      .dni-sub { font: 600 15px 'Segoe UI', system-ui, sans-serif; fill: #7C8798; }
+      .dni-brand { font: 800 22px 'Segoe UI', system-ui, sans-serif; fill: #F4600D; }
+    </style>
+  </defs>
+
+  <rect width="800" height="920" fill="url(#bg)"/>
+  <circle cx="680" cy="130" r="230" fill="url(#glow)"/>
+  <circle cx="90" cy="790" r="220" fill="#FFFFFF" opacity="0.07"/>
+
+  <!-- Cabecera -->
+  <text x="400" y="78" text-anchor="middle" class="eyebrow">AQUÍ TODO ES DIGITAL</text>
+  <text x="400" y="166" text-anchor="middle" class="h1">ABRE TU CUENTA</text>
+  <rect x="220" y="202" width="360" height="92" rx="22" fill="#FFFFFF"/>
+  <text x="400" y="268" text-anchor="middle" class="h2">EN 5 MIN</text>
+  <text x="400" y="340" text-anchor="middle" class="sub">Solo con tu DNI, desde tu celular</text>
+
+  <!-- DNI -->
+  <g transform="translate(400 640) rotate(-4)">
+    <rect x="-190" y="-170" width="380" height="340" rx="26" fill="url(#dni)" filter="drop-shadow(0 24px 40px rgba(14,47,74,.35))"/>
+    <!-- Foto -->
+    <rect x="-140" y="-140" width="120" height="150" rx="14" fill="#D9E4EE"/>
+    <circle cx="-80" cy="-95" r="34" fill="#AFC4D8"/>
+    <path d="M-140 -10 C -140 -45 -110 -55 -80 -55 C -50 -55 -20 -45 -20 -10 L -20 -8 C -20 -40 -120 -40 -120 -8 Z" fill="#AFC4D8"/>
+    <text x="-80" y="80" text-anchor="middle" class="dni-label">REPÚBLICA DEL PERÚ</text>
+    <rect x="-140" y="-140" width="120" height="150" rx="14" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+    <!-- Número -->
+    <text x="-10" y="-100" class="dni-label">Nº DOCUMENTO</text>
+    <text x="-10" y="-58" class="dni-num">7314 8217</text>
+    <text x="-10" y="-16" class="dni-name">FERNANDEZ LLA.</text>
+    <text x="-10" y="12" class="dni-name" fill="#5A9BC2">ELIAS</text>
+    <text x="-10" y="56" class="dni-sub">DNI ELECTRÓNICO</text>
+    <text x="-10" y="88" class="dni-brand">OmniCash</text>
+    <!-- Marca de verificado -->
+    <circle cx="138" cy="138" r="34" fill="#27AE60"/>
+    <path d="M122 138 l11 12 22 -24" fill="none" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Chips -->
+  <g>
+    <rect x="195" y="826" width="200" height="52" rx="26" fill="#FFFFFF"/>
+    <text x="295" y="859" text-anchor="middle" class="chip">VERIFICADO RENIEC</text>
+    <rect x="405" y="826" width="200" height="52" rx="26" fill="#FFFFFF"/>
+    <text x="505" y="859" text-anchor="middle" class="chip">SIN IR AL BANCO</text>
+  </g>
+
+  <text x="400" y="910" text-anchor="middle" class="foot">OMNICASH · BANCO DIGITAL</text>
+</svg>
