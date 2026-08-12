@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { authRoutes } from './routes/authRoutes.js';
 import { cuentaRoutes } from './routes/cuentaRoutes.js';
 import { adminRoutes } from './routes/adminRoutes.js';
+import { webhookMercadoPago } from './controllers/cuentaController.js';
 import { rutaNoEncontrada, manejadorDeErrores } from './middlewares/errores.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -35,6 +36,10 @@ export function createApp() {
   // API de cuentas y administración
   app.use('/api/cuenta', cuentaRoutes);
   app.use('/api/admin', adminRoutes);
+
+  // Webhook público de Mercado Pago (notifica los pagos de las recargas QR).
+  // El servidor verifica cada pago consultando la API de Mercado Pago.
+  app.post('/api/webhooks/mercadopago', express.json({ limit: '1mb' }), webhookMercadoPago);
 
   // Health check para monitoreo
   app.get('/api/health', (req, res) => res.json({

@@ -12,6 +12,8 @@ import { retirarEnCajero } from '../../../application/use-cases/retirarEnCajero.
 import { transferir } from '../../../application/use-cases/transferir.js';
 import { depositar } from '../../../application/use-cases/depositar.js';
 import { solicitarDepositoYape } from '../../../application/use-cases/solicitarDepositoYape.js';
+import { solicitarRecargaQr, acreditarRecargaQr } from '../../../application/use-cases/recargaQr.js';
+import { obtenerPago } from '../../../infrastructure/mercadopago/mp.js';
 import { YapeDepositRepository } from '../../../infrastructure/repositories/YapeDepositRepository.js';
 
 /** GET /api/cuenta — resumen de la cuenta del cliente autenticado */
@@ -85,5 +87,56 @@ export async function misDepositosYape(req, res, next) {
     res.json({ depositos });
   } catch (error) {
     next(error);
+  }
+}
+
+/** POST /api/cuenta/recarga-qr — genera el QR de Mercado Pago para recargar */
+export async function recargaQr(req, res, next) {
+  try {
+    const { monto } = req.body ?? {};
+    const resultado = await solicitarRecargaQr({ userId: req.usuario.id, monto });
+    res.status(201).json({ mensaje: 'Escanea el QR con tu Yape para pagar', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/cuenta/recarga-qr/:id — estado de una recarga por QR */
+export async function estadoRecargaQr(req, res, next) {
+  try {
+    const dep = await YapeDepositRepository.findById(Number(req.params.id));
+    if (!dep || dep.userId !== req.usuario.id) {
+      return res.status(404).json({ error: 'Recarga no encontrada' });
+    }
+    res.json({ estado: dep.state, saldo: null });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/webhooks/mercadopago — notificación de pago de Mercado Pago.
+ * Pública: el servidor consulta el pago a Mercado Pago para verificarlo
+ * (el body solo aporta el id) y acredita la recarga automáticamente.
+ */
+export async function webhookMercadoPago(req, res, next) {
+  try {
+    const payload = req.body ?? {};
+    const paymentId = payload.data?.id ?? payload.id;
+    if (!paymentId) return res.status(200).json({ ok: true });
+
+    const pago = await obtenerPago(paymentId);
+    if (!pago) return res.status(200).json({ ok: true });
+    if (pago.status !== 'approved') return res.status(200).json({ ok: true });
+
+    await acreditarRecargaQr({
+      externalReference: pago.externalReference,
+      amount: pago.amount,
+      paymentId: pago.id,
+    });
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    // El webhook siempre responde 200 para no reenviar; el error queda auditado
+    res.status(200).json({ ok: true, error: error.message });
   }
 }

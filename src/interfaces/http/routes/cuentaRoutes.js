@@ -7,7 +7,7 @@
  */
 
 import { Router } from 'express';
-import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape } from '../controllers/cuentaController.js';
+import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape, recargaQr, estadoRecargaQr } from '../controllers/cuentaController.js';
 import { autenticar, proteger, exigirReauth } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
 
@@ -61,3 +61,14 @@ cuentaRoutes.post('/deposito-yape',
 
 // GET /api/cuenta/depositos-yape — historial del cliente
 cuentaRoutes.get('/depositos-yape', misDepositosYape);
+
+// POST /api/cuenta/recarga-qr — recarga de dinero real con QR de Mercado Pago
+// (el cliente paga con Yape escaneando el QR; la acreditación es automática)
+cuentaRoutes.post('/recarga-qr',
+  validarBody({ monto: { required: true, type: 'number', min: 0.01 } }),
+  exigirReauth,
+  recargaQr
+);
+
+// GET /api/cuenta/recarga-qr/:id — estado de la recarga (polling del frontend)
+cuentaRoutes.get('/recarga-qr/:id', estadoRecargaQr);

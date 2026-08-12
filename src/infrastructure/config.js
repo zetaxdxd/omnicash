@@ -79,6 +79,12 @@ export const config = {
   // Máximo de cuentas que pueden compartir un mismo correo (el correo
   // NO es único: se rechaza solo a partir de la 4ª cuenta con el mismo correo)
   maxCuentasPorCorreo: Number(process.env.MAX_CUENTAS_POR_CORREO ?? 3),
+
+  // Mercado Pago: recargas de dinero real mediante QR (acepta pagos con Yape).
+  // MP_ACCESS_TOKEN se obtiene en mercadopago.com.pe → Credenciales.
+  mpAccessToken: process.env.MP_ACCESS_TOKEN ?? '',
+  mpUserId: process.env.MP_USER_ID ?? '',
+  mpNotificationUrl: process.env.MP_NOTIFICATION_URL ?? 'https://omnicash.onrender.com/api/webhooks/mercadopago',
 };
 
 /** Duración de sesiones expresada en milisegundos (apoyo a config) */

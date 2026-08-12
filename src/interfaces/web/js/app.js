@@ -295,6 +295,44 @@ function formatoFecha(iso) {
   return d.toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+// ---------- QR de Mercado Pago ----------
+/**
+ * Convierte el QR que devuelve Mercado Pago (PPM en base64) a una imagen
+ * PNG dibujándolo en un canvas. Sin esto el QR no se muestra en el navegador.
+ * @param {string} base64  Contenido PPM (P6, RGB) en base64
+ * @returns {string} dataURL PNG
+ */
+function qrDesdePpm(base64) {
+  const bin = atob(base64);
+  let i = 0;
+  const token = () => {
+    while (i < bin.length && /[\s#]/.test(bin[i])) {
+      if (bin[i] === '#') { while (i < bin.length && bin[i] !== '\n') i++; }
+      i++;
+    }
+    let s = '';
+    while (i < bin.length && !/[\s]/.test(bin[i])) s += bin[i++];
+    return s;
+  };
+  if (token() !== 'P6') throw new Error('QR inesperado de Mercado Pago');
+  const ancho = parseInt(token(), 10);
+  const alto = parseInt(token(), 10);
+  token(); // maxval
+  const canvas = document.createElement('canvas');
+  canvas.width = ancho;
+  canvas.height = alto;
+  const ctx = canvas.getContext('2d');
+  const img = ctx.createImageData(ancho, alto);
+  for (let p = 0; p < img.data.length; p += 4) {
+    img.data[p] = bin.charCodeAt(i++);
+    img.data[p + 1] = bin.charCodeAt(i++);
+    img.data[p + 2] = bin.charCodeAt(i++);
+    img.data[p + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
 // ---------- Aprobación de operaciones (contraseña + código del correo) ----------
 /** Devuelve una promesa que resuelve con el token REAUTH (o null si cancela) */
 function pedirReautenticacion(contexto) {
@@ -470,6 +508,48 @@ function configurarOperacionesCliente() {
       } catch (err) {
         $('yapeMsg').textContent = `${err.message}`;
         $('yapeMsg').style.color = 'var(--rojo)';
+      }
+    });
+  });
+
+  // Recarga por QR de Mercado Pago (acreditación automática)
+  let qrPoll = null;
+  $('qrForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await conReauth('Recarga por QR (Yape).', async (rt) => {
+      $('qrInstruccion').textContent = 'Generando tu QR...';
+      $('qrZona').classList.remove('hidden');
+      $('qrImg').style.visibility = 'hidden';
+      try {
+        const data = await peticion('/cuenta/recarga-qr', 'POST', { monto: Number($('qrMonto').value) }, rt);
+        $('qrImg').src = qrDesdePpm(data.qrData);
+        $('qrImg').style.visibility = 'visible';
+        $('qrInstruccion').textContent = `Escanea este QR con tu app Yape y paga S/ ${formatoCreditos(data.monto)}. El saldo se acredita solo.`;
+        $('qrEstado').textContent = 'Esperando tu pago...';
+        clearInterval(qrPoll);
+        qrPoll = setInterval(async () => {
+          try {
+            const estado = await peticion(`/cuenta/recarga-qr/${data.referencia}`);
+            if (estado.estado === 'ACREDITADO') {
+              clearInterval(qrPoll);
+              $('qrEstado').textContent = `¡Pago recibido! Se acreditaron S/ ${formatoCreditos(data.monto)} a tu cuenta.`;
+              $('qrEstado').style.color = 'var(--verde)';
+              $('qrForm').reset();
+              cargarMiCuenta();
+              cargarDepositosYape();
+            } else if (estado.estado === 'RECHAZADO') {
+              clearInterval(qrPoll);
+              $('qrEstado').textContent = 'La recarga fue rechazada. Contacta con soporte.';
+              $('qrEstado').style.color = 'var(--rojo)';
+            }
+          } catch (err) {
+            if (err.message && err.message.includes('Sesión')) { clearInterval(qrPoll); }
+          }
+        }, 4000);
+        cargarDepositosYape();
+      } catch (err) {
+        $('qrEstado').textContent = `${err.message}`;
+        $('qrEstado').style.color = 'var(--rojo)';
       }
     });
   });

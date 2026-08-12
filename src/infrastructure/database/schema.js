@@ -101,6 +101,7 @@ CREATE TABLE IF NOT EXISTS yape_deposits (
   amount       REAL    NOT NULL,
   payer_phone  TEXT    NOT NULL DEFAULT '',
   operacion    TEXT    NOT NULL DEFAULT '',
+  external_ref TEXT    NOT NULL DEFAULT '',
   state        TEXT    NOT NULL DEFAULT 'PENDIENTE',
   confirmed_by INTEGER REFERENCES users(id),
   confirmed_at TEXT,
@@ -115,6 +116,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_user   ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_codes_email     ON verification_codes(email);
 CREATE INDEX IF NOT EXISTS idx_yape_state      ON yape_deposits(state);
 CREATE INDEX IF NOT EXISTS idx_yape_user       ON yape_deposits(user_id);
+CREATE INDEX IF NOT EXISTS idx_yape_external_ref ON yape_deposits(external_ref);
 `;
 
 /** DDL para PostgreSQL (producción) */
@@ -209,11 +211,16 @@ export const SCHEMA_POSTGRES = [
   amount       DOUBLE PRECISION NOT NULL,
   payer_phone  TEXT      NOT NULL DEFAULT '',
   operacion    TEXT      NOT NULL DEFAULT '',
+  external_ref TEXT      NOT NULL DEFAULT '',
   state        TEXT      NOT NULL DEFAULT 'PENDIENTE',
   confirmed_by BIGINT    REFERENCES users(id),
   confirmed_at TEXT,
   created_at   TEXT      NOT NULL
 )`,
+
+  `ALTER TABLE yape_deposits ADD COLUMN IF NOT EXISTS external_ref TEXT NOT NULL DEFAULT ''`,
+
+  `CREATE INDEX IF NOT EXISTS idx_yape_external_ref ON yape_deposits(external_ref)`,
 
   `CREATE INDEX IF NOT EXISTS idx_accounts_user   ON accounts(user_id)`,
   `CREATE INDEX IF NOT EXISTS idx_tx_account      ON transactions(account_id)`,

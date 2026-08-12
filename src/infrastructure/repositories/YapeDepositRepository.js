@@ -18,6 +18,7 @@ function conAlias(fila) {
     amount: Number(fila.amount),
     payerPhone: fila.payer_phone,
     operacion: fila.operacion,
+    externalRef: fila.external_ref ?? '',
     state: fila.state,
     confirmedBy: fila.confirmed_by ? Number(fila.confirmed_by) : null,
     confirmedAt: fila.confirmed_at,
@@ -34,15 +35,29 @@ export const YapeDepositRepository = {
   STATES: Object.freeze({ PENDIENTE: 'PENDIENTE', ACREDITADO: 'ACREDITADO', RECHAZADO: 'RECHAZADO' }),
 
   /** Crea una solicitud de depósito PENDIENTE. */
-  async insert({ userId, accountId, amount, payerPhone, operacion }) {
+  async insert({ userId, accountId, amount, payerPhone = '', operacion = '', externalRef = null }) {
     const db = await getDb();
     const result = await db.prepare(`
-      INSERT INTO yape_deposits (user_id, account_id, amount, payer_phone, operacion, created_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).run(Number(userId), Number(accountId), amount, payerPhone, operacion, new Date().toISOString());
+      INSERT INTO yape_deposits (user_id, account_id, amount, payer_phone, operacion, external_ref, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).run(Number(userId), Number(accountId), amount, payerPhone, operacion, externalRef ?? '', new Date().toISOString());
     const fila = await db.prepare('SELECT * FROM yape_deposits WHERE id = ?')
       .get(Number(result.lastInsertRowid));
     return conAlias(fila);
+  },
+
+  /** Busca un depósito por su referencia externa (webhook de Mercado Pago). */
+  async findByExternalRef(externalRef) {
+    const db = await getDb();
+    const fila = await db.prepare('SELECT * FROM yape_deposits WHERE external_ref = ?').get(externalRef);
+    return conAlias(fila);
+  },
+
+  /** Guarda la referencia externa tras generar el QR (el id del depósito ya se conoce). */
+  async guardarExternalRef(id, externalRef) {
+    const db = await getDb();
+    await db.prepare('UPDATE yape_deposits SET external_ref = ? WHERE id = ?').run(externalRef, Number(id));
+    return this.findById(id);
   },
 
   async findById(id) {
