@@ -249,14 +249,17 @@ function formatoFecha(iso) {
   return d.toLocaleString('es-PE', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-// ---------- Reautenticación para operaciones sensibles ----------
+// ---------- Aprobación de operaciones (contraseña + código del correo) ----------
 /** Devuelve una promesa que resuelve con el token REAUTH (o null si cancela) */
 function pedirReautenticacion(contexto) {
   return new Promise((resolve) => {
     $('reauthModal').classList.remove('hidden');
-    $('reauthInfo').textContent = `${contexto} Supera el monto seguro, debemos confirmar su identidad.`;
+    $('reauthInfo').textContent = `${contexto} Confirme su identidad para autorizar la operación.`;
     $('reauthMsg').textContent = '';
     $('reauthValue').value = '';
+    $('reauthCodigo').value = '';
+    $('reauthCodigoZona').classList.add('hidden');
+    $('reauthAceptar').textContent = 'Continuar';
     $('reauthValue').focus();
 
     const terminar = (rt) => {
@@ -267,10 +270,36 @@ function pedirReautenticacion(contexto) {
     };
 
     $('reauthCancelar').onclick = () => terminar(null);
+
     $('reauthAceptar').onclick = async () => {
+      const password = $('reauthValue').value;
+      const codigo = $('reauthCodigo').value.trim();
+
+      if (!password) {
+        $('reauthMsg').textContent = 'Ingrese su contraseña';
+        return;
+      }
+
+      // Paso 1: enviar el código de aprobación al correo (solo una vez)
+      if ($('reauthCodigoZona').classList.contains('hidden')) {
+        $('reauthMsg').textContent = 'Enviando código de aprobación a su correo...';
+        try {
+          const data = await peticion('/auth/reauth/iniciar', 'POST', { password });
+          $('reauthCodigoZona').classList.remove('hidden');
+          $('reauthCorreoInfo').textContent = `Revise su correo (${data.correo}) e ingrese el código de 6 dígitos.`;
+          $('reauthAceptar').textContent = 'Confirmar operación';
+          $('reauthMsg').textContent = '';
+          $('reauthCodigo').focus();
+        } catch (err) {
+          $('reauthMsg').textContent = `${err.message}`;
+        }
+        return;
+      }
+
+      // Paso 2: confirmar con contraseña + código del correo
       $('reauthMsg').textContent = 'Verificando...';
       try {
-        const data = await peticion('/auth/reauth', 'POST', { password: $('reauthValue').value });
+        const data = await peticion('/auth/reauth', 'POST', { password, codigo });
         terminar(data.reauthToken);
       } catch (err) {
         $('reauthMsg').textContent = `${err.message}`;
@@ -279,15 +308,11 @@ function pedirReautenticacion(contexto) {
   });
 }
 
-/** Ejecuta una operación sensible pidiendo reautenticación si el monto lo exige */
-async function conReauth(contexto, monto, ejecutar) {
-  if (monto >= 100) {
-    const rt = await pedirReautenticacion(contexto);
-    if (!rt) return;
-    await ejecutar(rt);
-  } else {
-    await ejecutar(null);
-  }
+/** Ejecuta una operación pidiendo aprobación SIEMPRE (toda operación exige confirmación) */
+async function conReauth(contexto, ejecutar) {
+  const rt = await pedirReautenticacion(contexto);
+  if (!rt) return;
+  await ejecutar(rt);
 }
 
 // ---------- Inicialización según rol ----------
@@ -345,7 +370,7 @@ function configurarOperacionesCliente() {
     e.preventDefault();
     const monto = Number($('retiroMonto').value);
     $('retiroMsg').textContent = 'Procesando...';
-    await conReauth('Retiro en cajero.', monto, async (rt) => {
+    await conReauth('Retiro en cajero.', async (rt) => {
       try {
         const data = await peticion('/cuenta/retiro', 'POST', { monto }, rt);
         $('retiroMsg').textContent = `Retiraste ${formatoCreditos(data.totalDebitado)} (comisión ${formatoCreditos(data.comision)}). Saldo: ${formatoCreditos(data.saldoRestante)}`;
@@ -364,7 +389,7 @@ function configurarOperacionesCliente() {
     e.preventDefault();
     const monto = Number($('transferMonto').value);
     $('transferMsg').textContent = 'Procesando...';
-    await conReauth('Transferencia.', monto, async (rt) => {
+    await conReauth('Transferencia.', async (rt) => {
       try {
         const data = await peticion('/cuenta/transferencia', 'POST', {
           destino: $('transferDestino').value.trim(),
@@ -385,20 +410,22 @@ function configurarOperacionesCliente() {
   $('yapeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     $('yapeMsg').textContent = 'Registrando su solicitud...';
-    try {
-      const data = await peticion('/cuenta/deposito-yape', 'POST', {
-        celularYape: $('yapeCelular').value.trim(),
-        monto: Number($('yapeMonto').value),
-        operacion: $('yapeOperacion').value.trim(),
-      });
-      $('yapeMsg').textContent = `Solicitud #${data.referencia}: envía S/ ${formatoCreditos(data.monto)} por Yape a ${data.yapeCelular}. Espera la confirmación del banco.`;
-      $('yapeMsg').style.color = 'var(--verde)';
-      $('yapeForm').reset();
-      cargarDepositosYape();
-    } catch (err) {
-      $('yapeMsg').textContent = `${err.message}`;
-      $('yapeMsg').style.color = 'var(--rojo)';
-    }
+    await conReauth('Depósito por Yape.', async (rt) => {
+      try {
+        const data = await peticion('/cuenta/deposito-yape', 'POST', {
+          celularYape: $('yapeCelular').value.trim(),
+          monto: Number($('yapeMonto').value),
+          operacion: $('yapeOperacion').value.trim(),
+        }, rt);
+        $('yapeMsg').textContent = `Solicitud #${data.referencia}: envía S/ ${formatoCreditos(data.monto)} por Yape a ${data.yapeCelular}. Espera la confirmación del banco.`;
+        $('yapeMsg').style.color = 'var(--verde)';
+        $('yapeForm').reset();
+        cargarDepositosYape();
+      } catch (err) {
+        $('yapeMsg').textContent = `${err.message}`;
+        $('yapeMsg').style.color = 'var(--rojo)';
+      }
+    });
   });
   cargarDepositosYape();
 }
@@ -552,19 +579,21 @@ async function cargarClientes() {
 function configurarDeposito() {
   $('depositoForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    try {
-      const data = await peticion('/cuenta/deposito', 'POST', {
-        cci: $('depositoCuenta').value.trim(),
-        monto: Number($('depositoMonto').value),
-      });
-      $('depositoMsg').textContent = `Depósito de ${formatoCreditos(data.cuenta.balance)} — saldo actual: ${formatoCreditos(data.cuenta.balance)}`;
-      $('depositoMsg').style.color = 'var(--verde)';
-      $('depositoCuenta').value = ''; $('depositoMonto').value = '';
-      cargarClientes();
-    } catch (err) {
-      $('depositoMsg').textContent = `${err.message}`;
-      $('depositoMsg').style.color = 'var(--rojo)';
-    }
+    await conReauth('Depósito en ventanilla.', async (rt) => {
+      try {
+        const data = await peticion('/cuenta/deposito', 'POST', {
+          cci: $('depositoCuenta').value.trim(),
+          monto: Number($('depositoMonto').value),
+        }, rt);
+        $('depositoMsg').textContent = `Depósito de ${formatoCreditos(data.cuenta.balance)} — saldo actual: ${formatoCreditos(data.cuenta.balance)}`;
+        $('depositoMsg').style.color = 'var(--verde)';
+        $('depositoCuenta').value = ''; $('depositoMonto').value = '';
+        cargarClientes();
+      } catch (err) {
+        $('depositoMsg').textContent = `${err.message}`;
+        $('depositoMsg').style.color = 'var(--rojo)';
+      }
+    });
   });
 }
 
@@ -618,20 +647,22 @@ function configurarAdmin() {
   // Crear trabajador
   $('crearTrabajadorForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    try {
-      await peticion('/admin/trabajadores', 'POST', {
-        name: $('twName').value.trim(),
-        email: $('twEmail').value.trim(),
-        password: $('twPassword').value,
-      });
-      $('twMsg').textContent = 'Trabajador creado correctamente';
-      $('twMsg').style.color = 'var(--verde)';
-      $('crearTrabajadorForm').reset();
-      cargarDashboardAdmin();
-    } catch (err) {
-      $('twMsg').textContent = `${err.message}`;
-      $('twMsg').style.color = 'var(--rojo)';
-    }
+    await conReauth('Crear trabajador.', async (rt) => {
+      try {
+        await peticion('/admin/trabajadores', 'POST', {
+          name: $('twName').value.trim(),
+          email: $('twEmail').value.trim(),
+          password: $('twPassword').value,
+        }, rt);
+        $('twMsg').textContent = 'Trabajador creado correctamente';
+        $('twMsg').style.color = 'var(--verde)';
+        $('crearTrabajadorForm').reset();
+        cargarDashboardAdmin();
+      } catch (err) {
+        $('twMsg').textContent = `${err.message}`;
+        $('twMsg').style.color = 'var(--rojo)';
+      }
+    });
   });
 
   cargarYapePendientes();
@@ -684,17 +715,49 @@ window.resolverYape = async (id, accion) => {
 
 /** Bloquea o activa un cliente (función global usada en la tabla) */
 window.cambiarEstado = async (id, estado) => {
-  try {
-    await peticion(`/admin/usuarios/${id}/estado`, 'POST', { estado });
-    cargarDashboardAdmin();
-  } catch (err) { alert(err.message); }
+  await conReauth(`Cambiar estado del cliente (${estado}).`, async (rt) => {
+    try {
+      await peticion(`/admin/usuarios/${id}/estado`, 'POST', { estado }, rt);
+      cargarDashboardAdmin();
+    } catch (err) { alert(err.message); }
+  });
 };
 
 /** Elimina un cliente (función global usada en la tabla) */
 window.eliminarCliente = async (id) => {
   if (!confirm('¿Eliminar permanentemente a este cliente y su cuenta?')) return;
-  try {
-    await peticion(`/admin/usuarios/${id}`, 'DELETE');
-    cargarDashboardAdmin();
-  } catch (err) { alert(err.message); }
+  await conReauth('Eliminar cliente.', async (rt) => {
+    try {
+      await peticion(`/admin/usuarios/${id}`, 'DELETE', {}, rt);
+      cargarDashboardAdmin();
+    } catch (err) { alert(err.message); }
+  });
 };
+
+// ============================================================
+// ACTUALIZACIÓN AUTOMÁTICA (sin recargar la página)
+// ============================================================
+
+/**
+ * Recarga los datos en segundo plano cada 10 segundos.
+ * Se pausa mientras hay un modal abierto o la pestaña está oculta,
+ * para no interrumpir al usuario mientras escribe o confirma operaciones.
+ */
+let refrescoEnCurso = false;
+async function refrescarDatosAutomatico() {
+  if (refrescoEnCurso || document.hidden) return;
+  if (document.querySelector('.modal:not(.hidden)')) return; // modal abierto: pausa
+  refrescoEnCurso = true;
+  try {
+    if (usuario.role === 'CLIENTE') {
+      await Promise.all([cargarMiCuenta(), cargarDepositosYape()]);
+    } else if (usuario.role === 'TRABAJADOR') {
+      await cargarClientes();
+    } else if (usuario.role === 'ADMIN') {
+      await Promise.all([cargarDashboardAdmin(), cargarYapePendientes()]);
+    }
+  } catch { /* el error ya se muestra en cada vista */ }
+  refrescoEnCurso = false;
+}
+
+setInterval(refrescarDatosAutomatico, 10000);

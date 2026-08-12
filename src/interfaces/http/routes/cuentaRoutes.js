@@ -2,36 +2,27 @@
  * OmniCash - Interfaces HTTP
  * Rutas de cuenta (requieren sesión de cliente):
  * ver mi cuenta, retirar en cajero, transferir, depósitos.
- * Las operaciones de monto alto exigen reautenticación (X-Reauth-Token).
+ * TODAS las operaciones exigen aprobación (contraseña + código OTP
+ * del correo) mediante el token REAUTH de un solo uso.
  */
 
 import { Router } from 'express';
 import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape } from '../controllers/cuentaController.js';
 import { autenticar, proteger, exigirReauth } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
-import { config } from '../../../infrastructure/config.js';
 
 export const cuentaRoutes = Router();
 
 // Todas las rutas de cuenta requieren sesión
 cuentaRoutes.use(autenticar);
 
-// Middleware: exige reautenticación si el monto de la operación es sensible
-function siMontoSensible(middleware) {
-  return (req, res, next) => {
-    const monto = Number(req.body?.monto ?? 0);
-    if (monto >= config.sensitiveOperationMin) return middleware(req, res, next);
-    next();
-  };
-}
-
 // GET /api/cuenta — resumen del cliente autenticado
 cuentaRoutes.get('/', verMiCuenta);
 
-// POST /api/cuenta/retiro — cajero genérico (requiere reauth si monto alto)
+// POST /api/cuenta/retiro — cajero genérico (siempre exige aprobación)
 cuentaRoutes.post('/retiro',
   validarBody({ monto: { required: true, type: 'number', min: 0.01 } }),
-  siMontoSensible(exigirReauth),
+  exigirReauth,
   retirar
 );
 
@@ -41,7 +32,7 @@ cuentaRoutes.post('/transferencia',
     destino: { required: true, type: 'string' },
     monto: { required: true, type: 'number', min: 0.01 },
   }),
-  siMontoSensible(exigirReauth),
+  exigirReauth,
   transFerir
 );
 
@@ -52,6 +43,7 @@ cuentaRoutes.post('/deposito',
     cci: { required: true, type: 'string' },
     monto: { required: true, type: 'number', min: 0.01 },
   }),
+  exigirReauth,
   depositarP
 );
 
@@ -63,6 +55,7 @@ cuentaRoutes.post('/deposito-yape',
     celularYape: { required: true, type: 'string' },
     operacion: { required: true, type: 'string' },
   }),
+  exigirReauth,
   depositarYape
 );
 

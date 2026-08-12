@@ -91,3 +91,18 @@ export function enviarCodigoCambioIdentidad(para, codigo) {
     texto: 'Solicitaste actualizar tus datos personales en OmniCash Banco (nombres, apellidos, dirección, teléfono o DNI). Para confirmar que eres tú, usa este código de un solo uso:',
   });
 }
+
+/**
+ * Envía el código de APROBACIÓN para cualquier operación bancaria
+ * (retiros, transferencias, depósitos, Yape, acciones de administración).
+ * @param {string} para Correo principal del usuario
+ * @param {string} codigo Código de 6 dígitos
+ */
+export function enviarCodigoAprobacion(para, codigo) {
+  return enviarCorreo({
+    para,
+    codigo,
+    asunto: '🔐 Código de aprobación de operación OmniCash',
+    texto: 'Recibimos una solicitud de operación en tu cuenta OmniCash Banco. Para autorizarla, ingresa este código de un solo uso (vence en unos minutos):',
+  });
+}

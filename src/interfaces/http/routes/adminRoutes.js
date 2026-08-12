@@ -18,7 +18,7 @@ import {
   yapeAutorizar,
   yapeFinalizar,
 } from '../controllers/adminController.js';
-import { autenticar, proteger } from '../middlewares/auth.js';
+import { autenticar, proteger, exigirReauth } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
 
 export const adminRoutes = Router();
@@ -29,14 +29,15 @@ adminRoutes.use(autenticar);
 // GET /api/admin/dashboard — solo administrador supremo
 adminRoutes.get('/dashboard', proteger('ADMIN'), dashboard);
 
-// POST /api/admin/usuarios/:id/estado — bloquear/desbloquear (solo admin)
+// POST /api/admin/usuarios/:id/estado — bloquear/desbloquear (solo admin, con aprobación)
 adminRoutes.post('/usuarios/:id/estado',
   proteger('ADMIN'),
   validarBody({ estado: { required: true, type: 'string' } }),
+  exigirReauth,
   cambiarEstado
 );
 
-// POST /api/admin/trabajadores — contratar personal (solo admin)
+// POST /api/admin/trabajadores — contratar personal (solo admin, con aprobación)
 adminRoutes.post('/trabajadores',
   proteger('ADMIN'),
   validarBody({
@@ -44,11 +45,12 @@ adminRoutes.post('/trabajadores',
     email: { required: true, type: 'string' },
     password: { required: true, type: 'string' },
   }),
+  exigirReauth,
   crearEmpleado
 );
 
-// DELETE /api/admin/usuarios/:id — eliminar cliente (solo admin)
-adminRoutes.delete('/usuarios/:id', proteger('ADMIN'), eliminar);
+// DELETE /api/admin/usuarios/:id — eliminar cliente (solo admin, con aprobación)
+adminRoutes.delete('/usuarios/:id', proteger('ADMIN'), exigirReauth, eliminar);
 
 // GET /api/admin/clientes — soporte (admin y trabajador)
 adminRoutes.get('/clientes', proteger('ADMIN', 'TRABAJADOR'), listarClientes);

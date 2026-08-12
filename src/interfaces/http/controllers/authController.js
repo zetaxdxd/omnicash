@@ -10,7 +10,7 @@ import { PendingRegistrationRepository } from '../../../infrastructure/repositor
 import { verificarEmail } from '../../../application/use-cases/verificarEmail.js';
 import { iniciarSesion } from '../../../application/use-cases/iniciarSesion.js';
 import { verificarSegundoFactor } from '../../../application/use-cases/verificarSegundoFactor.js';
-import { reautenticar } from '../../../application/use-cases/reautenticar.js';
+import { reautenticar, solicitarAprobacion } from '../../../application/use-cases/reautenticar.js';
 import { solicitarRecuperacion } from '../../../application/use-cases/solicitarRecuperacion.js';
 import { confirmarRecuperacion } from '../../../application/use-cases/confirmarRecuperacion.js';
 import { solicitarCambioIdentidad } from '../../../application/use-cases/solicitarCambioIdentidad.js';
@@ -203,14 +203,30 @@ export async function cambiarContrasenaHandler(req, res, next) {
 
 // ---------------- Seguridad de cuenta (requieren sesión) ----------------
 
-/** POST /api/auth/reauth — vuelve a validar la identidad para operaciones sensibles */
+/** POST /api/auth/reauth/iniciar — valida contraseña y envía el código de aprobación al correo */
+export async function reauthIniciar(req, res, next) {
+  try {
+    const { password } = req.body ?? {};
+    const resultado = await solicitarAprobacion({
+      userId: req.usuario.id,
+      password,
+      userAgent: req.headers['user-agent'] ?? null,
+      ip: req.ip ?? null,
+    });
+    res.json({ mensaje: 'Te enviamos el código de aprobación a tu correo', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/auth/reauth — valida contraseña + código de aprobación y entrega el token */
 export async function reauth(req, res, next) {
   try {
     const { password, codigo } = req.body ?? {};
     const resultado = await reautenticar({
       userId: req.usuario.id,
       password,
-      codigoTotp: codigo,
+      codigo,
       userAgent: req.headers['user-agent'] ?? null,
       ip: req.ip ?? null,
     });

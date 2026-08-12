@@ -6,7 +6,7 @@
 import { Router } from 'express';
 import {
   registrar, verificar, reenviarCodigo, login, login2fa, yo,
-  reauth,
+  reauth, reauthIniciar,
   iniciar2faHandler, confirmar2faHandler, desactivar2faHandler,
   misSesiones, revocarUnaSesion, cerrarSesiones,
   recuperar, confirmarRecuperacionHandler,
@@ -65,6 +65,7 @@ authRoutes.post('/login/2fa',
 authRoutes.get('/yo', autenticar, yo);
 
 // Confirmación de identidad antes de operaciones sensibles
+authRoutes.post('/reauth/iniciar', autenticar, reauthIniciar);
 authRoutes.post('/reauth', autenticar, reauth);
 
 // ----- Segundo factor (TOTP) -----
