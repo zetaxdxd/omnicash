@@ -12,6 +12,8 @@ import { UserRepository } from '../../infrastructure/repositories/UserRepository
 import { AccountRepository } from '../../infrastructure/repositories/AccountRepository.js';
 import { AuditRepository } from '../../infrastructure/repositories/AuditRepository.js';
 import { PasswordService } from '../../infrastructure/security/password.js';
+import { normalizarDni } from '../../infrastructure/security/peru.js';
+import { consultarDni, identidadCoincide } from '../../infrastructure/reniec/consultaDni.js';
 import { User } from '../../domain/entities/User.js';
 import { NotFoundError, ForbiddenError, BusinessRuleViolationError, ConflictError } from '../../domain/errors/DomainError.js';
 
@@ -62,10 +64,16 @@ export async function cambiarEstadoUsuario({ targetUserId, nuevoEstado, autorRol
 /**
  * Crea un trabajador del banco (empleado con rol TRABAJADOR).
  * Solo el administrador supremo puede contratar personal.
- * @param {object} input {name, email, password, whatsapp, autorRole, autorId}
+ * El trabajador entrega DNI y datos KYC (contrastados con RENIEC),
+ * para que el banco mantenga su expediente completo.
+ * @param {object} input {name, email, password, whatsapp, dni, apellidoPaterno, apellidoMaterno, nombres, autorRole, autorId}
  * @returns {object} usuario creado
  */
-export async function crearTrabajador({ name, email, password, whatsapp = '', autorRole, autorId }) {
+export async function crearTrabajador({
+  name, email, password, whatsapp = '',
+  dni, apellidoPaterno, apellidoMaterno, nombres,
+  autorRole, autorId,
+}) {
   if (autorRole !== ROLES.ADMIN) {
     throw new ForbiddenError('Solo el administrador supremo puede crear trabajadores');
   }
@@ -73,6 +81,30 @@ export async function crearTrabajador({ name, email, password, whatsapp = '', au
   const emailNormalizado = String(email).trim().toLowerCase();
   if (await UserRepository.findByEmail(emailNormalizado)) {
     throw new ConflictError('Ya existe una cuenta con ese correo');
+  }
+
+  // Datos de identidad del trabajador (expediente KYC del banco)
+  const paterno = String(apellidoPaterno ?? '').trim();
+  const materno = String(apellidoMaterno ?? '').trim();
+  const pila = String(nombres ?? '').trim();
+  if (paterno.length < 2 || materno.length < 2 || pila.length < 2) {
+    throw new BusinessRuleViolationError(
+      'Completa los apellidos paterno, materno y nombres del trabajador (mínimo 2 letras cada uno)'
+    );
+  }
+
+  // DNI con dígito verificador
+  const dniNormalizado = normalizarDni(dni);
+  if (!dniNormalizado) {
+    throw new BusinessRuleViolationError('DNI inválido: debe tener 8 dígitos (ej: 73148217)');
+  }
+
+  // Contraste con RENIEC: el trabajador es una persona real del padrón
+  const identidad = await consultarDni(dniNormalizado.slice(0, 8));
+  if (identidad && !identidadCoincide(identidad, { nombres: pila, apellidoPaterno: paterno, apellidoMaterno: materno })) {
+    throw new BusinessRuleViolationError(
+      'Los datos del trabajador no coinciden con el registro oficial del DNI (RENIEC). Revisa el autocompletado'
+    );
   }
 
   // WhatsApp de trabajo: acepta 9 dígitos (se agrega el 51 del Perú) o 51 + 9 dígitos
@@ -88,13 +120,17 @@ export async function crearTrabajador({ name, email, password, whatsapp = '', au
     passwordHash,
     role: ROLES.TRABAJADOR,
     whatsapp: whatsappNormalizado,
+    dni: dniNormalizado,
+    apellidoPaterno: paterno,
+    apellidoMaterno: materno,
+    nombres: pila,
   });
   const guardado = await UserRepository.insert(usuario);
 
   await AuditRepository.log({
     actorId: autorId,
     action: 'CREAR_TRABAJADOR',
-    detail: `Nuevo trabajador: ${emailNormalizado}`,
+    detail: `Nuevo trabajador: ${emailNormalizado} (DNI ${dniNormalizado})` + (identidad ? ' · identidad validada contra RENIEC' : ' · modo offline (sin RENIEC)'),
   });
 
   return { usuario: guardado.toPublicJSON() };

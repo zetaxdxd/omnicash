@@ -193,8 +193,13 @@
       <!-- Crear trabajador -->
       <div class="card">
         <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Contratar trabajador</h3>
+        <p class="card-sub">Ingrese su DNI: los datos se autocompletan con RENIEC. Estos datos quedan en el expediente del banco; en el centro de soporte solo se mostrará su nombre y WhatsApp.</p>
         <form id="crearTrabajadorForm">
-          <input type="text" id="twName" placeholder="Nombre completo" required>
+          <input type="text" id="twDni" placeholder="DNI (8 dígitos)" maxlength="8" inputmode="numeric" required>
+          <p class="auth-hint-inline" id="twDniStatus">Ingrese su DNI para continuar con la validación de identidad.</p>
+          <input type="text" id="twPaterno" placeholder="Apellido paterno" required>
+          <input type="text" id="twMaterno" placeholder="Apellido materno" required>
+          <input type="text" id="twNombres" placeholder="Nombres" required>
           <input type="email" id="twEmail" placeholder="correo@omnicash.com" required>
           <input type="text" id="twWhatsapp" placeholder="WhatsApp de trabajo: 987654321 (opcional)" inputmode="numeric">
           <input type="password" id="twPassword" placeholder="Contraseña" required>

@@ -43,9 +43,9 @@ export async function cambiarEstado(req, res, next) {
 /** POST /api/admin/trabajadores — crear un trabajador */
 export async function crearEmpleado(req, res, next) {
   try {
-    const { name, email, password } = req.body ?? {};
+    const { name, email, password, whatsapp, dni, apellidoPaterno, apellidoMaterno, nombres } = req.body ?? {};
     const resultado = await crearTrabajador({
-      name, email, password,
+      name, email, password, whatsapp, dni, apellidoPaterno, apellidoMaterno, nombres,
       autorRole: req.usuario.role,
       autorId: req.usuario.id,
     });

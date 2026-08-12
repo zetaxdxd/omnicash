@@ -257,7 +257,7 @@ async function abrirSoporte() {
     $('soporteLista').innerHTML = items.map((s) => {
       const wa = s.whatsapp ? `https://wa.me/${s.whatsapp}?text=${encodeURIComponent('Hola, soy cliente de OmniCash y necesito ayuda.')}` : null;
       const nombre = s.name || 'Ejecutivo de soporte';
-      const sub = wa ? `<span class="card-sub">WhatsApp: +${s.whatsapp}</span>` : `<span class="card-sub">${s.email}</span>`;
+      const sub = wa ? `<span class="card-sub">WhatsApp: +${s.whatsapp}</span>` : `<span class="card-sub">Sin WhatsApp configurado</span>`;
       return `
         <button class="soporte-item" data-wa="${wa || ''}">
           <span class="soporte-avatar">${nombre.trim().charAt(0).toUpperCase()}</span>
@@ -690,16 +690,54 @@ async function cargarDashboardAdmin() {
 
 /** Configura los controles administrativos */
 function configurarAdmin() {
+  // Autocompletado de identidad del trabajador (DNI → RENIEC)
+  let twDniTimeout = null;
+  const twDni = document.getElementById('twDni');
+  if (twDni) {
+    twDni.addEventListener('input', () => {
+      const dni = twDni.value.replace(/\D/g, '').slice(0, 8);
+      twDni.value = dni;
+      const status = document.getElementById('twDniStatus');
+      if (dni.length !== 8) {
+        status.textContent = 'Ingrese su DNI para continuar con la validación de identidad.';
+        status.className = 'auth-hint-inline';
+        return;
+      }
+      clearTimeout(twDniTimeout);
+      twDniTimeout = setTimeout(async () => {
+        status.textContent = 'Verificando su identidad...';
+        status.className = 'auth-hint-inline';
+        try {
+          const res = await fetch(API + '/auth/dni/' + dni);
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(data.error || 'Error del servidor');
+          document.getElementById('twPaterno').value = data.paterno || '';
+          document.getElementById('twMaterno').value = data.materno || '';
+          document.getElementById('twNombres').value = data.nombres || '';
+          status.textContent = 'Identidad verificada. Puede corregir los datos si es necesario.';
+          status.className = 'auth-hint-inline ok';
+        } catch (err) {
+          status.textContent = 'No fue posible verificar su identidad automáticamente. Complete sus datos manualmente.';
+          status.className = 'auth-hint-inline warn';
+        }
+      }, 500);
+    });
+  }
+
   // Crear trabajador
   $('crearTrabajadorForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     await conReauth('Crear trabajador.', async (rt) => {
       try {
         await peticion('/admin/trabajadores', 'POST', {
-          name: $('twName').value.trim(),
+          name: `${$('twNombres').value.trim()} ${$('twPaterno').value.trim()} ${$('twMaterno').value.trim()}`.replace(/\s+/g, ' '),
           email: $('twEmail').value.trim(),
           password: $('twPassword').value,
           whatsapp: $('twWhatsapp').value.trim(),
+          dni: $('twDni').value.trim(),
+          apellidoPaterno: $('twPaterno').value.trim(),
+          apellidoMaterno: $('twMaterno').value.trim(),
+          nombres: $('twNombres').value.trim(),
         }, rt);
         $('twMsg').textContent = 'Trabajador creado correctamente';
         $('twMsg').style.color = 'var(--verde)';

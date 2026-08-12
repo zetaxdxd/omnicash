@@ -8,8 +8,10 @@
 import { UserRepository } from '../../infrastructure/repositories/UserRepository.js';
 
 /**
- * Devuelve el equipo de soporte con sus datos de contacto públicos.
- * @returns {object} {soportes: [{id, name, email, whatsapp}]}
+ * Devuelve el equipo de soporte con su contacto de WhatsApp.
+ * Solo se expone el nombre y el número: los datos KYC del trabajador
+ * (DNI, apellidos, correo) son internos del banco.
+ * @returns {object} {soportes: [{id, name, whatsapp}]}
  */
 export async function listarSoportes() {
   const trabajadores = await UserRepository.findAll({ role: 'TRABAJADOR', limit: 100 });
@@ -18,7 +20,6 @@ export async function listarSoportes() {
     .map((t) => ({
       id: t.id,
       name: t.fullName,
-      email: t.email,
       whatsapp: t.whatsapp ?? '',
     }));
   return { soportes };
