@@ -12,7 +12,7 @@ import { config } from '../config.js';
 
 let transporter = null;
 
-/** Crea el transportador SMTP una sola vez (patrón lazy singleton) */
+/** Crea el transportador SMTP (465 segura primero, 587 STARTTLS como respaldo) */
 function obtenerTransporter() {
   if (!config.gmailUser || !config.gmailAppPassword) return null;
   if (!transporter) {
@@ -21,24 +21,48 @@ function obtenerTransporter() {
       port: 465,
       secure: true,
       auth: { user: config.gmailUser, pass: config.gmailAppPassword },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
   }
   return transporter;
 }
 
+/** Si el puerto 465 falla, reintenta por 587 (STARTTLS) sin bloquear al usuario */
+async function enviarConRespaldo(transporter, opciones, para) {
+  try {
+    await transporter.sendMail(opciones);
+    return;
+  } catch (error) {
+    console.error(`[correo] SMTP 465 falló (${para}): ${error.message}`);
+  }
+  const respaldo = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: { user: config.gmailUser, pass: config.gmailAppPassword },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
+  await respaldo.sendMail(opciones);
+}
+
 /**
  * Envía un correo con el código OTP (o lo muestra en consola en modo dev).
+ * El código SIEMPRE se loguea en consola como respaldo de diagnóstico.
  * @param {object} params {para, codigo, asunto, texto}
  */
 async function enviarCorreo({ para, codigo, asunto, texto }) {
   const smtp = obtenerTransporter();
   if (!smtp) {
-    // Modo desarrollo: el código se loguea para poder probar el flujo completo
     console.warn(`[correo] SMTP no configurado (GMAIL_USER / GMAIL_APP_PASSWORD). Para: ${para}`);
     console.warn(`[correo] ${asunto}: ${texto} Codigo: ${codigo}`);
     return;
   }
-  await smtp.sendMail({
+  console.log(`[correo] Enviando a ${para} — ${asunto}`);
+  await enviarConRespaldo(smtp, {
     from: `"OmniCash Banco" <${config.gmailUser}>`,
     to: para,
     subject: asunto,
@@ -56,7 +80,7 @@ async function enviarCorreo({ para, codigo, asunto, texto }) {
         </div>
       </div>
     `,
-  });
+  }, para);
 }
 
 export { enviarCorreo };
