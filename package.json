@@ -1,6 +1,6 @@
 {
   "name": "omnicash",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OmniCash - Banco digital con arquitectura limpia (MVP). Cuentas, transferencias, retiros en cajero y panel de administración.",
   "type": "module",
   "main": "src/server.js",
