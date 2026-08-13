@@ -40,6 +40,10 @@ function mapToEntity(row) {
     const id = Number(row.id);
     return {
       id,
+      role: row.role,
+      email: row.email,
+      get isAdmin() { return row.role === 'ADMIN'; },
+      get isActivo() { return row.state === 'ACTIVO'; },
       toPublicJSON() {
         return {
           id,
