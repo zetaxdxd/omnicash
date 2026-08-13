@@ -43,6 +43,7 @@ async function enviarConRespaldo(transporter, opciones, para) {
     if (config.smtpHost) {
       // Respaldos: Gmail 465 → Gmail 587 (si el proveedor primario cayó)
       const hosts = [
+        { host: 'smtp-relay.sendinblue.com', port: 587, secure: false },
         { host: 'smtp.gmail.com', port: 465, secure: true },
         { host: 'smtp.gmail.com', port: 587, secure: false },
       ];
