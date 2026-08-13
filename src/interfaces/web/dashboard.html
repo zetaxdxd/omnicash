@@ -79,22 +79,17 @@
         <!-- Tarjeta de depósito por Yape -->
         <div class="card">
           <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg> Recargar saldo</h3>
-          <p class="card-sub">Pague con Yape y el banco abonará su cuenta al instante.</p>
+          <p class="card-sub">Recarga tu cuenta con dinero real. Elige cómo pagar:</p>
 
-          <!-- Forma de pago 1: QR de Mercado Pago (automático) -->
-          <form id="qrForm">
-            <input type="number" id="qrMonto" placeholder="Monto a recargar (S/)" min="1" step="0.01" required>
-            <button class="btn-primary" type="submit">Mostrar QR para pagar con Yape</button>
-          </form>
-          <div id="qrZona" class="hidden" style="text-align:center;margin-top:10px">
-            <p class="card-sub" id="qrInstruccion">Escanea este QR con tu app Yape y paga el monto indicado.</p>
-            <img id="qrImg" alt="QR de recarga" style="width:220px;height:220px;border-radius:12px;border:1px solid #eee;background:#fff;margin:8px auto">
-            <p class="card-sub" id="qrEstado">Esperando tu pago...</p>
+          <!-- Método 1: Yape del banco (personal, manual, cae en tu Yape) -->
+          <h4>1. Yape del banco (recomendado)</h4>
+          <p class="card-sub">Abre tu app Yape, escanea este QR y paga. Luego pega abajo el código que te muestra Yape.</p>
+          <div id="yapeComercioZona" style="text-align:center;margin:10px 0">
+            <img id="yapeComercioQr" alt="QR del Yape del banco" style="width:220px;height:220px;border-radius:12px;border:1px solid #eee;background:#fff;margin:8px auto">
+            <p class="card-sub" id="yapeComercioNombre"></p>
+            <p class="card-sub" id="yapeComercioPhone"></p>
+            <p class="card-sub" id="yapeComercioMsg" style="color:#b3261e"></p>
           </div>
-
-          <div style="display:flex;align-items:center;gap:10px;margin:10px 0"><div style="flex:1;height:1px;background:#eee"></div><span class="card-sub" style="margin:0">o</span><div style="flex:1;height:1px;background:#eee"></div></div>
-
-          <!-- Forma de pago 2: Yape manual (confirmación del banco) -->
           <form id="yapeForm">
             <input type="number" id="yapeMonto" placeholder="Monto a cargar (S/)" min="1" step="0.01" required>
             <input type="tel" id="yapeCelular" placeholder="Tu celular Yape (9 dígitos)" maxlength="9" required>
@@ -108,6 +103,21 @@
               <thead><tr><th>Ref</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead>
               <tbody id="yapeHistorialBody"><tr><td colspan="4">Sin solicitudes</td></tr></tbody>
             </table>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span class="card-sub" style="margin:0">o</span><div style="flex:1;height:1px;background:#eee"></div></div>
+
+          <!-- Método 2: Mercado Pago (automático) -->
+          <h4>2. Mercado Pago (automático)</h4>
+          <p class="card-sub">Paga con Yape escaneando este QR. El saldo se acredita solo cuando Mercado Pago confirma.</p>
+          <form id="qrForm">
+            <input type="number" id="qrMonto" placeholder="Monto a recargar (S/)" min="1" step="0.01" required>
+            <button class="btn-primary" type="submit">Mostrar QR para pagar</button>
+          </form>
+          <div id="qrZona" class="hidden" style="text-align:center;margin-top:10px">
+            <p class="card-sub" id="qrInstruccion">Escanea este QR con tu app Yape y paga el monto indicado.</p>
+            <img id="qrImg" alt="QR de recarga" style="width:220px;height:220px;border-radius:12px;border:1px solid #eee;background:#fff;margin:8px auto">
+            <p class="card-sub" id="qrEstado">Esperando tu pago...</p>
           </div>
         </div>
       </div>

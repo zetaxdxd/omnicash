@@ -413,6 +413,7 @@ if (usuario.role === 'CLIENTE') {
   configurarOperacionesCliente();
   cargarSeguridad();
   configurarSeguridad();
+  cargarYapeComercio();
 } else if (usuario.role === 'TRABAJADOR') {
   $('trabajadorView').classList.remove('hidden');
   cargarClientes();
@@ -522,7 +523,9 @@ function configurarOperacionesCliente() {
       $('qrImg').style.visibility = 'hidden';
       try {
         const data = await peticion('/cuenta/recarga-qr', 'POST', { monto: Number($('qrMonto').value) }, rt);
-        $('qrImg').src = qrDesdePpm(data.qrData);
+        $('qrImg').src = (typeof data.qrData === 'string' && data.qrData.startsWith('data:image'))
+          ? data.qrData
+          : qrDesdePpm(data.qrData);
         $('qrImg').style.visibility = 'visible';
         $('qrInstruccion').textContent = `Escanea este QR con tu app Yape y paga S/ ${formatoCreditos(data.monto)}. El saldo se acredita solo.`;
         $('qrEstado').textContent = 'Esperando tu pago...';
@@ -1008,3 +1011,21 @@ document.querySelectorAll('.audit-toggle').forEach((btn) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
   });
 });
+
+// ---------- Yape del banco (QR para recarga manual) ----------
+async function cargarYapeComercio() {
+  try {
+    const data = await peticion('/cuenta/yape-comercio');
+    if (data.qr) {
+      $('yapeComercioQr').src = data.qr;
+      $('yapeComercioQr').classList.remove('hidden');
+    } else {
+      $('yapeComercioQr').classList.add('hidden');
+    }
+    $('yapeComercioNombre').textContent = data.name ? `Banco: ${data.name}` : '';
+    $('yapeComercioPhone').textContent = data.phone ? `Yape: ${data.phone}` : '';
+    $('yapeComercioMsg').textContent = data.alias ? '' : 'El banco aún no configura su Yape. Usa Mercado Pago.';
+  } catch (err) {
+    $('yapeComercioMsg').textContent = 'No se pudo cargar el QR del banco.';
+  }
+}

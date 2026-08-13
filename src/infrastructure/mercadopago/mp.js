@@ -9,6 +9,7 @@
  */
 
 import { config } from '../config.js';
+import QRCode from 'qrcode';
 
 const API_MP = 'https://api.mercadopago.com';
 
@@ -36,52 +37,52 @@ export async function obtenerUserIdVendedor() {
 }
 
 /**
- * Genera (o reemplaza) el QR dinámico de una caja: cada recarga del
- * cliente usa su propia caja (`oc-<userId>`) y su propio QR.
+ * Genera un link de pago (checkout preference) por cada recarga y devuelve
+ * un QR (PNG data URL) de ese link. Funciona en cuentas personales de MP
+ * (no requiere punto de venta / instore QR). Mercado Pago notifica el pago
+ * por webhook y OmniCash lo acredita automáticamente.
  *
  * @param {object} input {userId, depositId, amount}
  * @returns {object} {inStoreOrderId, qrData, externalReference}
  */
 export async function generarQr({ userId, depositId, amount }) {
-  const collectorId = await obtenerUserIdVendedor();
-  const posId = `oc-${userId}`;
   const externalReference = `oc-dep-${depositId}`;
 
-  const res = await fetch(
-    `${API_MP}/instore/orders/qr/seller/collectors/${collectorId}/pos/${posId}/qrs`,
-    {
-      method: 'POST',
-      headers: headers(),
-      body: JSON.stringify({
-        external_reference: externalReference,
-        notification_url: config.mpNotificationUrl,
+  const res = await fetch(`${API_MP}/checkout/preferences`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({
+      items: [{
         title: `Recarga OmniCash ${amount} S/`,
         description: `Recarga de ${amount} soles a tu cuenta OmniCash`,
-        total_amount: Number(amount),
-        items: [{
-          title: 'Recarga de créditos',
-          description: `Abono de ${amount} soles a tu cuenta OmniCash`,
-          quantity: 1,
-          unit_price: Number(amount),
-          total_amount: Number(amount),
-        }],
-      }),
-    }
-  );
+        quantity: 1,
+        unit_price: Number(amount),
+        currency_id: 'PEN',
+      }],
+      external_reference: externalReference,
+      notification_url: config.mpNotificationUrl,
+    }),
+  });
 
   if (!res.ok) {
     const detalle = await res.text().catch(() => '');
-    throw new Error(`Mercado Pago rechazó el QR (${res.status}): ${detalle.slice(0, 200)}`);
+    throw new Error(`Mercado Pago rechazó el link de pago (${res.status}): ${detalle.slice(0, 200)}`);
   }
 
   const datos = await res.json();
-  if (!datos.qr_data) {
-    throw new Error('Mercado Pago no devolvió el QR. Revisa la configuración de la cuenta');
+  if (!datos.init_point) {
+    throw new Error('Mercado Pago no devolvió el link de pago');
   }
 
+  const qrData = await QRCode.toDataURL(datos.init_point, {
+    width: 320,
+    margin: 2,
+    color: { dark: '#1b1b1b', light: '#ffffff' },
+  });
+
   return {
-    inStoreOrderId: datos.in_store_order_id,
-    qrData: datos.qr_data,
+    inStoreOrderId: datos.id,
+    qrData,
     externalReference,
   };
 }

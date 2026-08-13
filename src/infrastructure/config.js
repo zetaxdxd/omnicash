@@ -65,6 +65,7 @@ export const config = {
   // Yape real: número (celular BCP) que recibe el dinero y nombre mostrado
   yapeMerchantPhone: process.env.YAPE_MERCHANT_PHONE ?? '',
   yapeMerchantName: process.env.YAPE_MERCHANT_NAME ?? 'OmniCash',
+  yapeMerchantAlias: process.env.YAPE_MERCHANT_ALIAS ?? '',
   yapeMaxAmount: Number(process.env.YAPE_MAX_AMOUNT ?? 1000),
   yapeDailyLimit: Number(process.env.YAPE_DAILY_LIMIT ?? 3000),
 

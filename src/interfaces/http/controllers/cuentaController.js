@@ -14,6 +14,9 @@ import { depositar } from '../../../application/use-cases/depositar.js';
 import { solicitarDepositoYape } from '../../../application/use-cases/solicitarDepositoYape.js';
 import { solicitarRecargaQr, acreditarRecargaQr } from '../../../application/use-cases/recargaQr.js';
 import { obtenerPago } from '../../../infrastructure/mercadopago/mp.js';
+import QRCode from 'qrcode';
+import { config } from '../../../infrastructure/config.js';
+import crypto from 'node:crypto';
 import { YapeDepositRepository } from '../../../infrastructure/repositories/YapeDepositRepository.js';
 import { AtmRepository } from '../../../infrastructure/repositories/AtmRepository.js';
 import { solicitarRetiroRedCajero as solicitarRetiroRedCajeroUseCase } from '../../../application/use-cases/solicitarRetiroRedCajero.js';
@@ -232,6 +235,50 @@ export async function estadoRecargaQr(req, res, next) {
   }
 }
 
+/** GET /api/cuenta/yape-comercio — datos y QR del Yape del banco para recargas manuales */
+export async function yapeComercio(req, res, next) {
+  try {
+    const alias = (config.yapeMerchantAlias || '').trim();
+    const phone = (config.yapeMerchantPhone || '').trim();
+    const name = config.yapeMerchantName || 'OmniCash';
+    let qr = null;
+    if (alias) {
+      qr = await QRCode.toDataURL(`https://yape.me/${encodeURIComponent(alias)}`, {
+        width: 240, margin: 1, color: { dark: '#1b1b1b', light: '#ffffff' },
+      });
+    }
+    res.json({ name, phone, alias: alias || null, qr });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * Verifica la firma `x-signature` de Mercado Pago (defensa en profundidad).
+ * La fuente de verdad SIEMPRE es consultar el pago a MP; esta firma solo
+ * alerta si la notificación no viene de MP. Por ahora es NO-bloquear: si la
+ * firma no cuadra se audita la anomalía (log) pero se sigue verificando el
+ * pago contra MP. Una vez confirmado con una notificación real, se puede
+ * volver bloqueante.
+ */
+function verificarFirmaMP(req, paymentId) {
+  const xSignature = req.headers['x-signature'];
+  const xRequestId = req.headers['x-request-id'];
+  if (!xSignature || !xRequestId) return { presente: false, valido: false };
+  let ts, hash;
+  for (const part of String(xSignature).split(',')) {
+    const [k, v] = part.split('=');
+    if (k.trim() === 'ts') ts = v;
+    if (k.trim() === 'v1') hash = v;
+  }
+  const url = new URL(req.url, 'http://localhost');
+  const dataId = url.searchParams.get('data.id') ?? paymentId;
+  if (!ts || !hash || !dataId) return { presente: true, valido: false };
+  const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+  const computed = crypto.createHmac('sha256', config.mpAccessToken).update(manifest).digest('hex');
+  return { presente: true, valido: computed === hash };
+}
+
 /**
  * POST /api/webhooks/mercadopago — notificación de pago de Mercado Pago.
  * Pública: el servidor consulta el pago a Mercado Pago para verificarlo
@@ -242,6 +289,11 @@ export async function webhookMercadoPago(req, res, next) {
     const payload = req.body ?? {};
     const paymentId = payload.data?.id ?? payload.id;
     if (!paymentId) return res.status(200).json({ ok: true });
+
+    const firma = verificarFirmaMP(req, paymentId);
+    if (firma.presente && !firma.valido) {
+      console.warn('[MP] Webhook con firma inválida para pago', paymentId);
+    }
 
     const pago = await obtenerPago(paymentId);
     if (!pago) return res.status(200).json({ ok: true });
