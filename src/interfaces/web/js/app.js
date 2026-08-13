@@ -751,6 +751,8 @@ async function cargarDashboardAdmin() {
               ${u.state === 'ACTIVO' ? 'Bloquear' : 'Activar'}
             </button>
             <button class="btn-small rojo" onclick="eliminarCliente(${u.id})" title="Eliminar">Eliminar</button>
+          ` : u.role === 'TRABAJADOR' ? `
+            <button class="btn-small rojo" onclick="eliminarTrabajador(${u.id})" title="Eliminar">Eliminar</button>
           ` : ''}
         </td>
       </tr>
