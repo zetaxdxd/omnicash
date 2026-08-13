@@ -145,9 +145,9 @@ export async function crearTrabajador({
 }
 
 /**
- * Elimina permanentemente a un cliente, su cuenta y sus movimientos.
+ * Elimina permanentemente a un usuario (cliente o trabajador), su cuenta y sus movimientos.
  * Solo admin supremo. Protecciones: no eliminarse a sí mismo,
- * no eliminar administradores ni trabajadores.
+ * no eliminar al administrador supremo.
  * @param {object} input {targetUserId, autorRole, autorId}
  * @returns {object} {eliminado: true}
  */
@@ -163,16 +163,20 @@ export async function eliminarUsuario({ targetUserId, autorRole, autorId }) {
     throw new BusinessRuleViolationError('No puedes eliminar tu propia cuenta');
   }
 
-  // Admin supremo puede eliminar trabajadores y clientes
-// No hay restricciones adicionales de rol aquí
-  
+  // El admin supremo puede eliminar tanto clientes como trabajadores
+  if (usuario.isAdmin) {
+    throw new ForbiddenError('No puedes eliminar la cuenta del administrador supremo');
+  }
+
+  const rolLegible = usuario.role === ROLES.TRABAJADOR ? 'Trabajador' : 'Cliente';
+
   await UserRepository.remove(targetUserId);
 
   await AuditRepository.log({
     actorId: autorId,
     action: 'ELIMINAR_USUARIO',
-    detail: `Cliente eliminado: ${usuario.email}`,
+    detail: `${rolLegible} eliminado: ${usuario.email} (rol: ${usuario.role})`,
   });
 
-  return { eliminado: true, email: usuario.email };
+  return { eliminado: true, email: usuario.email, rol: usuario.role };
 }
