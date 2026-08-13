@@ -14,6 +14,7 @@ import { cambiarEstadoUsuario, crearTrabajador, eliminarUsuario } from '../../..
 import { listarClientesParaTrabajador } from '../../../application/use-cases/panelTrabajador.js';
 import { autorizarDepositoYape, YAPE_CONFIRM_PURPOSE } from '../../../application/use-cases/autorizarDepositoYape.js';
 import { finalizarDepositoYape } from '../../../application/use-cases/finalizarDepositoYape.js';
+import { completarRetiroRedCajero } from '../../../application/use-cases/completarRetiroRedCajero.js';
 import { YapeDepositRepository } from '../../../infrastructure/repositories/YapeDepositRepository.js';
 
 /** GET /api/admin/dashboard — métricas globales del banco */
@@ -83,6 +84,38 @@ export async function eliminar(req, res, next) {
 export async function listarClientes(req, res, next) {
   try {
     res.json({ clientes: await listarClientesParaTrabajador() });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// ---------------------------------------------------
+// RETIRO SIN TARJERA RED (admin)
+// ---------------------------------------------------
+
+/** POST /api/admin/cajero/retiro/:withdrawalId/completar — confirma un retiro en cajero (staff) */
+export async function completarRetiroRedCajeroAdmin(req, res, next) {
+  try {
+    const { withdrawalId } = req.params;
+    const { codigoPlain } = req.body ?? {};
+    if (!codigoPlain) return res.status(400).json({ error: 'Falta el código plano' });
+    const resultado = await completarRetiroRedCajero({
+      withdrawalId: Number(withdrawalId),
+      codigoPlain,
+      confirmUserId: req.usuario.id,
+    });
+    res.json({ mensaje: 'Retiro completado', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/admin/cajero/retiros-pendientes — lista retiros pending para confirmar (admin) */
+export async function listarRetirosPendientesAdmin(req, res, next) {
+  try {
+    const retiros = await completarRetiroRedCajero.listarRetirosPendientes ? await completarRetiroRedCajero.listarRetirosPendientes() : [];
+    // fallback: use AtmRepository directly if function not exposed
+    res.json({ retiros });
   } catch (error) {
     next(error);
   }

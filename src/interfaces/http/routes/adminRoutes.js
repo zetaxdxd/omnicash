@@ -18,6 +18,8 @@ import {
   yapePendientes,
   yapeAutorizar,
   yapeFinalizar,
+  completarRetiroRedCajeroAdmin,
+  listarRetirosPendientesAdmin,
 } from '../controllers/adminController.js';
 import { autenticar, proteger, exigirReauth } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
@@ -78,4 +80,18 @@ adminRoutes.post('/yape/:id/finalizar',
     accion: { required: true, type: 'string' },
   }),
   yapeFinalizar
+);
+
+// RETIRO SIN TARJERA RED (admin)
+adminRoutes.post('/cajero/retiro/:withdrawalId/completar',
+  proteger('ADMIN', 'TRABAJADOR'),
+  exigirReauth,
+  validarBody({ codigo: { required: true, type: 'string' } }),
+  completarRetiroRedCajeroAdmin
+);
+
+adminRoutes.get('/cajero/retiros-pendientes',
+  proteger('ADMIN', 'TRABAJADOR'),
+  exigirReauth,
+  listarRetirosPendientesAdmin
 );
