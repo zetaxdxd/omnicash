@@ -987,4 +987,14 @@ async function refrescarDatosAutomatico() {
   refrescoEnCurso = false;
 }
 
+/** Elimina permanentemente a un trabajador (solo admin supremo). */
+window.eliminarTrabajador = async (id) => {
+  if (!confirm("¿Eliminar permanentemente al trabajador y su cuenta?")) return;
+  await conReauth("Eliminar trabajador.", async (rt) => {
+    try {
+      await peticion(`/admin/usuarios/${id}`, "DELETE", {}, rt);
+      cargarDashboardAdmin();
+    } catch (err) { alert(err.message); }
+  });
+}
 setInterval(refrescarDatosAutomatico, 10000);
