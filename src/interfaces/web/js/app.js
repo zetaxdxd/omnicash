@@ -515,9 +515,10 @@ function configurarOperacionesCliente() {
 
   // Recarga por QR de Mercado Pago (acreditación automática)
   let qrPoll = null;
+  let qrTimer = null;
   $('qrForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    await conReauth('Recarga por QR (Yape).', async (rt) => {
+    await conReauth('Recarga por QR.', async (rt) => {
       $('qrInstruccion').textContent = 'Generando tu QR...';
       $('qrZona').classList.remove('hidden');
       $('qrImg').style.visibility = 'hidden';
@@ -527,28 +528,49 @@ function configurarOperacionesCliente() {
           ? data.qrData
           : qrDesdePpm(data.qrData);
         $('qrImg').style.visibility = 'visible';
-        $('qrInstruccion').textContent = `Escanea este QR con tu app Yape y paga S/ ${formatoCreditos(data.monto)}. El saldo se acredita solo.`;
-        $('qrEstado').textContent = 'Esperando tu pago...';
+        $('qrInstruccion').textContent = 'Abre o escanea este QR y paga con Yape en el checkout de Mercado Pago. El saldo se acredita solo.';
+
+        const ttl = Math.max(1, Math.round((data.ttlMs || 120000) / 1000));
+        let restante = ttl;
+        const pintarRestante = () => { $('qrEstado').textContent = `Esperando tu pago... (expira en ${restante}s)`; };
+        pintarRestante();
+
         clearInterval(qrPoll);
+        clearInterval(qrTimer);
         qrPoll = setInterval(async () => {
           try {
             const estado = await peticion(`/cuenta/recarga-qr/${data.referencia}`);
             if (estado.estado === 'ACREDITADO') {
-              clearInterval(qrPoll);
+              clearInterval(qrPoll); clearInterval(qrTimer);
               $('qrEstado').textContent = `¡Pago recibido! Se acreditaron S/ ${formatoCreditos(data.monto)} a tu cuenta.`;
               $('qrEstado').style.color = 'var(--verde)';
               $('qrForm').reset();
               cargarMiCuenta();
               cargarDepositosYape();
             } else if (estado.estado === 'RECHAZADO') {
-              clearInterval(qrPoll);
-              $('qrEstado').textContent = 'La recarga fue rechazada. Contacta con soporte.';
+              clearInterval(qrPoll); clearInterval(qrTimer);
+              $('qrEstado').textContent = 'La recarga expiró o fue rechazada. Genera un nuevo QR.';
               $('qrEstado').style.color = 'var(--rojo)';
             }
           } catch (err) {
-            if (err.message && err.message.includes('Sesión')) { clearInterval(qrPoll); }
+            if (err.message && err.message.includes('Sesión')) { clearInterval(qrPoll); clearInterval(qrTimer); }
           }
         }, 4000);
+
+        // Temporizador de vigencia del QR (2 minutos): al vencer, se deshace
+        qrTimer = setInterval(() => {
+          restante -= 1;
+          if (restante <= 0) {
+            clearInterval(qrTimer); clearInterval(qrPoll);
+            peticion(`/cuenta/recarga-qr/${data.referencia}/expirar`, 'POST').catch(() => {});
+            $('qrZona').classList.add('hidden');
+            $('qrEstado').textContent = 'QR expirado. Genera uno nuevo.';
+            $('qrEstado').style.color = 'var(--rojo)';
+          } else {
+            pintarRestante();
+          }
+        }, 1000);
+
         cargarDepositosYape();
       } catch (err) {
         $('qrEstado').textContent = `${err.message}`;

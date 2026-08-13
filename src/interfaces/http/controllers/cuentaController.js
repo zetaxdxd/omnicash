@@ -12,7 +12,7 @@ import { retirarEnCajero } from '../../../application/use-cases/retirarEnCajero.
 import { transferir } from '../../../application/use-cases/transferir.js';
 import { depositar } from '../../../application/use-cases/depositar.js';
 import { solicitarDepositoYape } from '../../../application/use-cases/solicitarDepositoYape.js';
-import { solicitarRecargaQr, acreditarRecargaQr } from '../../../application/use-cases/recargaQr.js';
+import { solicitarRecargaQr, acreditarRecargaQr, expirarRecargaQr } from '../../../application/use-cases/recargaQr.js';
 import { obtenerPago } from '../../../infrastructure/mercadopago/mp.js';
 import QRCode from 'qrcode';
 import { config } from '../../../infrastructure/config.js';
@@ -230,6 +230,16 @@ export async function estadoRecargaQr(req, res, next) {
       return res.status(404).json({ error: 'Recarga no encontrada' });
     }
     res.json({ estado: dep.state, saldo: null });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/recarga-qr/:id/expirar — deshace el QR tras su temporizador */
+export async function vencerRecargaQr(req, res, next) {
+  try {
+    const resultado = await expirarRecargaQr({ userId: req.usuario.id, depositId: Number(req.params.id) });
+    res.json({ mensaje: 'Recarga expirada', ...resultado });
   } catch (error) {
     next(error);
   }

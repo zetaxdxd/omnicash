@@ -109,6 +109,22 @@ export const YapeDepositRepository = {
     return filas.map(conAlias);
   },
 
+  /** Marca como RECHAZADO las recargas PENDIENTE más antiguas que ttlMs (DB-agnóstico) */
+  async expirarVencidos(userId, ttlMs) {
+    const db = await getDb();
+    const filas = await db.prepare(
+      `SELECT * FROM yape_deposits WHERE user_id = ? AND state = 'PENDIENTE'`
+    ).all(Number(userId));
+    const ahora = Date.now();
+    for (const f of filas) {
+      if (ahora - new Date(f.created_at).getTime() > ttlMs) {
+        await db.prepare(
+          `UPDATE yape_deposits SET state = 'RECHAZADO', confirmed_at = ? WHERE id = ?`
+        ).run(new Date().toISOString(), f.id);
+      }
+    }
+  },
+
   /** Suma de monto ACREDITADO desde una fecha (para tope diario) */
   async sumAcreditadosDesde(accountId, desde) {
     const db = await getDb();

@@ -86,6 +86,8 @@ export const config = {
   mpAccessToken: process.env.MP_ACCESS_TOKEN ?? '',
   mpUserId: process.env.MP_USER_ID ?? '',
   mpNotificationUrl: process.env.MP_NOTIFICATION_URL ?? 'https://omnicash.onrender.com/api/webhooks/mercadopago',
+  /** Tiempo de vida del QR de recarga (minutos). Tras expirar, el QR deja de ser válido. */
+  recargaQrTtlMinutos: Number(process.env.RECARGA_QR_TTL_MINUTOS ?? 2),
 
   // Red de Cajeros OmniCash (retiro sin tarjeta con código de un solo uso)
   atmCodeTtlMinutes: Number(process.env.ATM_CODE_TTL_MINUTES ?? 10),

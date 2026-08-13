@@ -7,7 +7,7 @@
  */
 
 import { Router } from 'express';
-import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape,   recargaQr, estadoRecargaQr, yapeComercio, solicitarRetiroRedCajero, listarCajerosAliados, historialRetirosCliente, rentabilidad, crearAlcancia, aportarAlcancia, sacarDeAlcancia, crearTanda, unirseTanda, iniciarCicloTanda } from '../controllers/cuentaController.js';
+import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape,   recargaQr, estadoRecargaQr, vencerRecargaQr, yapeComercio, solicitarRetiroRedCajero, listarCajerosAliados, historialRetirosCliente, rentabilidad, crearAlcancia, aportarAlcancia, sacarDeAlcancia, crearTanda, unirseTanda, iniciarCicloTanda } from '../controllers/cuentaController.js';
 import { autenticar, proteger, exigirReauth } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
 
@@ -72,6 +72,9 @@ cuentaRoutes.post('/recarga-qr',
 
 // GET /api/cuenta/recarga-qr/:id — estado de la recarga (polling del frontend)
 cuentaRoutes.get('/recarga-qr/:id', estadoRecargaQr);
+
+// POST /api/cuenta/recarga-qr/:id/expirar — deshace el QR tras su temporizador
+cuentaRoutes.post('/recarga-qr/:id/expirar', vencerRecargaQr);
 
 // GET /api/cuenta/yape-comercio — datos y QR del Yape del banco (recarga manual)
 cuentaRoutes.get('/yape-comercio', yapeComercio);

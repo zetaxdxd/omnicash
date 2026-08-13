@@ -13,7 +13,7 @@ import { AccountRepository } from '../../infrastructure/repositories/AccountRepo
 import { YapeDepositRepository } from '../../infrastructure/repositories/YapeDepositRepository.js';
 import { TransactionRepository } from '../../infrastructure/repositories/TransactionRepository.js';
 import { AuditRepository } from '../../infrastructure/repositories/AuditRepository.js';
-import { NotFoundError, BusinessRuleViolationError } from '../../domain/errors/DomainError.js';
+import { NotFoundError, BusinessRuleViolationError, ForbiddenError } from '../../domain/errors/DomainError.js';
 import { Transaction, TRANSACTION_TYPES } from '../../domain/entities/Transaction.js';
 import { config } from '../../infrastructure/config.js';
 import { generarQr } from '../../infrastructure/mercadopago/mp.js';
@@ -37,6 +37,9 @@ export async function solicitarRecargaQr({ userId, monto }) {
   }
   cuenta.ensureOperativa();
   cuenta.validarMonto(montoNum);
+
+  // 0. Expirar recargas pendientes vencidas del usuario (libera el cupo)
+  await YapeDepositRepository.expirarVencidos(userId, config.recargaQrTtlMinutos * 60 * 1000);
 
   // 1. Solo una recarga pendiente a la vez
   if (await YapeDepositRepository.countPendientes(userId) > 0) {
@@ -88,13 +91,15 @@ export async function solicitarRecargaQr({ userId, monto }) {
     detail: `Recarga por QR #${depositado.id} de ${montoNum} soles (external ${qr.externalReference})`,
   });
 
+  const ttlMs = config.recargaQrTtlMinutos * 60 * 1000;
   return {
     referencia: depositado.id,
     monto: montoNum,
     inStoreOrderId: qr.inStoreOrderId,
     qrData: qr.qrData,
     estado: YapeDepositRepository.STATES.PENDIENTE,
-    mensaje: `Escanea el QR con tu Yape y paga ${montoNum} soles. El saldo se acreditará automáticamente a tu cuenta`,
+    expiresAt: new Date(Date.now() + ttlMs).toISOString(),
+    ttlMs,
   };
 }
 
@@ -112,6 +117,14 @@ export async function acreditarRecargaQr({ externalReference, amount, paymentId 
     // Idempotente: el pago ya fue procesado
     return { estado: depositado.state, referencia: depositado.id };
   }
+
+  // Tope de vigencia del QR: si pasaron más de recargaQrTtlMinutos, se deshace
+  const ttlMs = config.recargaQrTtlMinutos * 60 * 1000;
+  if (Date.now() - new Date(depositado.createdAt).getTime() > ttlMs) {
+    await YapeDepositRepository.resolver(depositado.id, YapeDepositRepository.STATES.RECHAZADO, null);
+    throw new BusinessRuleViolationError('La recarga expiró (más de 2 minutos). Genera un nuevo QR');
+  }
+
   if (Math.abs(Number(depositado.amount) - Number(amount)) > 0.01) {
     throw new BusinessRuleViolationError(
       `El monto pagado (${amount}) no coincide con la recarga solicitada (${depositado.amount})`
@@ -154,4 +167,30 @@ export async function acreditarRecargaQr({ externalReference, amount, paymentId 
   });
 
   return { estado: resuelto.state, referencia: depositado.id, saldo: cuenta.balance };
+}
+
+/**
+ * Expira (deshace) una recarga QR pendiente del propio usuario.
+ * Usado por el temporizador del frontend cuando pasan los 2 minutos.
+ * @param {object} input {userId, depositId}
+ * @returns {object} {estado, referencia}
+ */
+export async function expirarRecargaQr({ userId, depositId }) {
+  const depositado = await YapeDepositRepository.findById(Number(depositId));
+  if (!depositado) throw new NotFoundError('Recarga no encontrada');
+  if (depositado.userId !== Number(userId)) throw new ForbiddenError('No autorizado');
+  if (depositado.state !== YapeDepositRepository.STATES.PENDIENTE) {
+    return { estado: depositado.state, referencia: depositado.id };
+  }
+  const resuelto = await YapeDepositRepository.resolver(
+    depositado.id,
+    YapeDepositRepository.STATES.RECHAZADO,
+    null
+  );
+  await AuditRepository.log({
+    actorId: userId,
+    action: 'RECARGA_QR_EXPIRADA',
+    detail: `Recarga por QR #${depositado.id} expirada manualmente por el usuario`,
+  });
+  return { estado: resuelto.state, referencia: depositado.id };
 }
