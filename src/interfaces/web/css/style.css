@@ -685,3 +685,18 @@ h2 svg, h3 svg, h4 svg {
 .badge.PENDIENTE { background: #fff8e1; color: #b8860b; }
 .badge.ACREDITADO { background: #e8f8ef; color: var(--verde); }
 .badge.RECHAZADO { background: #fdecea; color: var(--rojo); }
+
+/* ---- Auditoría colapsable + correcciones de solapamiento ---- */
+html { scroll-padding-top: 84px; } /* la barra land-nav es fixed: los anclas no quedan debajo */
+.audit-toggle { cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; user-select: none; }
+.audit-toggle:hover { color: #6a3df0; }
+.audit-toggle .chev { display: inline-block; color: #6a3df0; font-size: 14px; transition: transform .18s ease; }
+.audit-card.abierto .audit-toggle .chev { transform: rotate(90deg); }
+.audit-cuerpo { display: none; }
+.audit-card.abierto .audit-cuerpo { display: block; }
+/* El contenido de la tarjeta de saldo va por encima de la marca de agua "OC" (absolute) */
+.card-saldo .cs-titulo, .card-saldo .cs-valor, .card-saldo .cs-ayuda { position: relative; z-index: 1; }
+
+/* Separación consistente entre bloques del panel de administración (sin colapso de márgenes) */
+.admin-stack { display: flex; flex-direction: column; gap: 30px; }
+.admin-stack .card, .admin-stack .cards-grid { margin-bottom: 0; }

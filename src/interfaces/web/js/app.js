@@ -996,3 +996,15 @@ window.eliminarTrabajador = async (id) => {
   });
 }
 setInterval(refrescarDatosAutomatico, 10000);
+// ---------- Colapsables de la vista de auditoría ----------
+document.querySelectorAll('.audit-toggle').forEach((btn) => {
+  const toggle = () => {
+    const card = btn.closest('.audit-card');
+    const open = card.classList.toggle('abierto');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  };
+  btn.addEventListener('click', toggle);
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+});
