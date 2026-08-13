@@ -162,10 +162,10 @@ export async function eliminarUsuario({ targetUserId, autorRole, autorId }) {
   if (usuario.id === autorId) {
     throw new BusinessRuleViolationError('No puedes eliminar tu propia cuenta');
   }
-  if (usuario.isAdmin || usuario.isTrabajador) {
-    throw new ForbiddenError('Solo puedes eliminar cuentas de clientes');
-  }
 
+  # Admin supremo puede eliminar trabajadores y clientes
+  # No hay restricciones adicionales de rol aquí
+  
   await UserRepository.remove(targetUserId);
 
   await AuditRepository.log({
