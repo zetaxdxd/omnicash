@@ -9,9 +9,15 @@
 export const TRANSACTION_TYPES = Object.freeze({
   DEPOSITO: 'DEPOSITO',               // Entrada de dinero a la cuenta (ventanilla)
   DEPOSITO_YAPE: 'DEPOSITO_YAPE',     // Entrada de dinero por Yape (confirmada por el admin)
-  RETIRO_CAJERO: 'RETIRO_CAJERO',     // Salida de dinero por cajero automático
+  RETIRO_CAJERO: 'RETIRO_CAJERO',     // Salida de dinero por cajero automático (red externa)
+  RETIRO_RED: 'RETIRO_RED',           // Salida por retiro en red OmniCash (sin comisión)
   TRANSFERENCIA_ENVIADA: 'TRANSFERENCIA_ENVIADA', // Salida por transferencia
   TRANSFERENCIA_RECIBIDA: 'TRANSFERENCIA_RECIBIDA', // Entrada por transferencia
+  INTERES_DIARIO: 'INTERES_DIARIO',   // Abono de rentabilidad diaria
+  ALCANCIA_APORTE: 'ALCANCIA_APORTE', // Aporte a alcancía (desde saldo)
+  ALCANCIA_RETIRO: 'ALCANCIA_RETIRO', // Retiro de alcancía (a saldo)
+  TANDA_APORTE: 'TANDA_APORTE',       // Aporte a la tanda (salida)
+  TANDA_POZO: 'TANDA_POZO',           // Recepción de pozo de la tanda (entrada)
 });
 
 /**

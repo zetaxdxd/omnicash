@@ -6,6 +6,7 @@
 import { config } from './infrastructure/config.js';
 import { createApp } from './interfaces/http/app.js';
 import { usaPostgres } from './infrastructure/database/connection.js';
+import { verificarYAplicarInteres, tiempoHastaMedianoche } from './infrastructure/jobs/dailyInterestJob.js';
 
 const app = createApp();
 
@@ -19,3 +20,12 @@ app.listen(config.port, () => {
   console.log(`  Comision cajero: ${config.atmFee * 100}%`);
   console.log('=================================================');
 });
+
+// Job de rentabilidad diaria: aplica intereses a las 00:00 y luego cada hora
+setTimeout(() => {
+  verificarYAplicarInteres(); // primera ejecución a medianoche
+}, tiempoHastaMedianoche());
+
+setInterval(() => {
+  verificarYAplicarInteres();
+}, 60 * 60 * 1000); // cada hora

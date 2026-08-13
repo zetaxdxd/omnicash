@@ -7,7 +7,7 @@
  */
 
 import { Router } from 'express';
-import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape, recargaQr, estadoRecargaQr } from '../controllers/cuentaController.js';
+import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape, recargaQr, estadoRecargaQr, solicitarRetiroRedCajero, listarCajerosAliados, historialRetirosCliente, rentabilidad, crearAlcancia, aportarAlcancia, sacarDeAlcancia, crearTanda, unirseTanda, iniciarCicloTanda } from '../controllers/cuentaController.js';
 import { autenticar, proteger, exigirReauth } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
 
@@ -72,3 +72,29 @@ cuentaRoutes.post('/recarga-qr',
 
 // GET /api/cuenta/recarga-qr/:id — estado de la recarga (polling del frontend)
 cuentaRoutes.get('/recarga-qr/:id', estadoRecargaQr);
+
+// RED DE CAJEROS (retiros sin tarjeta)
+cuentaRoutes.post('/cajero/retiro',
+  validarBody({ monto: { required: true, type: 'number', min: 0.01 } }),
+  exigirReauth,
+  solicitarRetiroRedCajero
+);
+
+// LISTA DE CAJEROS aliados de la red (solo lectura para el cliente)
+cuentaRoutes.get('/cajeros', listarCajerosAliados);
+
+// HISTORIAL DE RETIROS EN CAJERO (cliente)
+cuentaRoutes.get('/retiros-cajero', historialRetirosCliente);
+
+// RENTABILIDAD DIARIA
+cuentaRoutes.get('/rentabilidad', rentabilidad);
+
+// ALCANCÍAS 3D
+cuentaRoutes.post('/alcancia', crearAlcancia);
+cuentaRoutes.post('/alcancia/aportar', aportarAlcancia);
+cuentaRoutes.post('/alcancia/retirar', sacarDeAlcancia);
+
+// LA TANDA
+cuentaRoutes.post('/tanda', crearTanda);
+cuentaRoutes.post('/tanda/unirse', unirseTanda);
+cuentaRoutes.post('/tanda/iniciar-ciclo', iniciarCicloTanda);

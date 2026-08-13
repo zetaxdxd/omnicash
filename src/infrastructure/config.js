@@ -85,6 +85,20 @@ export const config = {
   mpAccessToken: process.env.MP_ACCESS_TOKEN ?? '',
   mpUserId: process.env.MP_USER_ID ?? '',
   mpNotificationUrl: process.env.MP_NOTIFICATION_URL ?? 'https://omnicash.onrender.com/api/webhooks/mercadopago',
+
+  // Red de Cajeros OmniCash (retiro sin tarjeta con código de un solo uso)
+  atmCodeTtlMinutes: Number(process.env.ATM_CODE_TTL_MINUTES ?? 10),
+  atmMaxAmount: Number(process.env.ATM_MAX_AMOUNT ?? 500),
+  atmDailyLimit: Number(process.env.ATM_DAILY_LIMIT ?? 1000),
+
+  // Rentabilidad diaria ("tu dinero no duerme")
+  interestRateAnual: Number(process.env.INTEREST_RATE_ANUAL ?? 4.0),
+
+  // Alcancías / Metas de ahorro
+  goalRoundupEnabled: process.env.GOAL_ROUNDUP_ENABLED !== 'false',
+
+  // La Tanda
+  tandaEnabled: process.env.TANDA_ENABLED !== 'false',
 };
 
 /** Duración de sesiones expresada en milisegundos (apoyo a config) */

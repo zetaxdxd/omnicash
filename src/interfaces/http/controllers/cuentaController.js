@@ -15,6 +15,9 @@ import { solicitarDepositoYape } from '../../../application/use-cases/solicitarD
 import { solicitarRecargaQr, acreditarRecargaQr } from '../../../application/use-cases/recargaQr.js';
 import { obtenerPago } from '../../../infrastructure/mercadopago/mp.js';
 import { YapeDepositRepository } from '../../../infrastructure/repositories/YapeDepositRepository.js';
+import { AtmRepository } from '../../../infrastructure/repositories/AtmRepository.js';
+import { solicitarRetiroRedCajero as solicitarRetiroRedCajeroUseCase } from '../../../application/use-cases/solicitarRetiroRedCajero.js';
+import { iniciarCicloTanda, unirseTanda, crearTanda } from '../../../application/use-cases/tanda.js';
 
 /** GET /api/cuenta — resumen de la cuenta del cliente autenticado */
 export async function verMiCuenta(req, res, next) {
@@ -85,6 +88,121 @@ export async function misDepositosYape(req, res, next) {
   try {
     const depositos = await YapeDepositRepository.findByUserId(req.usuario.id);
     res.json({ depositos });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/cajero/retiro — solicitar retiro sin tarjeta en la red OmniCash */
+export async function solicitarRetiroRedCajero(req, res, next) {
+  try {
+    const { monto } = req.body ?? {};
+    const { atmId } = req.body ?? {};
+    const resultado = await solicitarRetiroRedCajeroUseCase({ userId: req.usuario.id, monto, atmId });
+    res.status(201).json({ mensaje: 'Solicitud de retiro en cajero generada', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/cuenta/cajeros — lista cajeros aliados de la red (solo lectura) */
+export async function listarCajerosAliados(req, res, next) {
+  try {
+    const cajeros = await AtmRepository.listarCajeros();
+    res.json({ cajeros });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/cuenta/retiros-cajero — historial de retiros en cajero del cliente */
+export async function historialRetirosCliente(req, res, next) {
+  try {
+    const { limite = 20 } = req.query;
+    const historial = await AtmRepository.historialCliente(req.usuario.id, Number(limite));
+    res.json({ historial });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/cuenta/rentabilidad — monto de interés ganado hoy */
+export async function rentabilidad(req, res, next) {
+  try {
+    const { interesDelDia } = await aplicarRentabilidadDiaria({ accountId: req.usuario.id });
+    res.json({ interesDelDia });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/alcancia — crear una nueva alcancia (meta de ahorro) */
+export async function crearAlcancia(req, res, next) {
+  try {
+    const { nombre, objetivo } = req.body ?? {};
+    if (!nombre || !objetivo) return res.status(400).json({ error: 'Faltan nombre u objetivo' });
+    const resultado = await crearAlcancia({ userId: req.usuario.id, nombre, objetivo, accountId: req.usuario.id });
+    res.status(201).json({ mensaje: 'Alcancia creada', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/alcancia/aportar — aportar dinero a una alcancia */
+export async function aportarAlcancia(req, res, next) {
+  try {
+    const { goalId, monto } = req.body ?? {};
+    if (!goalId || !monto) return res.status(400).json({ error: 'Faltan goalId u monto' });
+    const resultado = await aportarAlcancia({ goalId: Number(goalId), monto: Number(monto) });
+    res.json({ mensaje: 'Aportación registrada', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/alcancia/retirar — retirar dinero de una alcancia */
+export async function sacarDeAlcancia(req, res, next) {
+  try {
+    const { goalId, monto } = req.body ?? {};
+    if (!goalId || !monto) return res.status(400).json({ error: 'Faltan goalId u monto' });
+    const resultado = await sacarDeAlcancia({ goalId: Number(goalId), monto: Number(monto) });
+    res.json({ mensaje: 'Retiro completado', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/tanda — crear una nueva tanda */
+export async function crearTanda(req, res, next) {
+  try {
+    const { nombre, pozoInicial } = req.body ?? {};
+    if (!nombre || !pozoInicial) return res.status(400).json({ error: 'Faltan nombre o pozoInicial' });
+    const resultado = await crearTanda({ userId: req.usuario.id, nombre, pozoInicial });
+    res.status(201).json({ mensaje: 'Tanda creada', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/tanda/unirse — unirse a una tanda */
+export async function unirseTanda(req, res, next) {
+  try {
+    const { tandaId } = req.body ?? {};
+    if (!tandaId) return res.status(400).json({ error: 'Faltan tandaId' });
+    const resultado = await unirseTanda({ userId: req.usuario.id, tandaId: Number(tandaId) });
+    res.json({ mensaje: 'Te has unido a la tanda', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/tanda/iniciar-ciclo — iniciar el ciclo de la tanda */
+export async function iniciarCicloTanda(req, res, next) {
+  try {
+    const { tandaId } = req.body ?? {};
+    if (!tandaId) return res.status(400).json({ error: 'Faltan tandaId' });
+    const resultado = await iniciarCicloTanda({ tandaId: Number(tandaId), userId: req.usuario.id });
+    res.json({ mensaje: 'Ciclo de tanda iniciado', ...resultado });
   } catch (error) {
     next(error);
   }
