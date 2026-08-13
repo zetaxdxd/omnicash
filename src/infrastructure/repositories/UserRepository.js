@@ -13,28 +13,54 @@ import { NotFoundError } from '../../domain/errors/DomainError.js';
 /** Mapea una fila SQL a una entidad de dominio User */
 function mapToEntity(row) {
   if (!row) return null;
-  return new User({
-    id: Number(row.id),
-    name: row.name,
-    apellidoPaterno: row.apellido_paterno,
-    apellidoMaterno: row.apellido_materno,
-    nombres: row.nombres,
-    direccion: row.direccion,
-    email: row.email,
-    backupEmail: row.backup_email,
-    dni: row.dni,
-    phone: row.phone,
-    whatsapp: row.whatsapp,
-    passwordHash: row.password_hash,
-    role: row.role,
-    state: row.state,
-    emailVerified: Boolean(row.email_verified),
-    totpSecret: row.totp_secret,
-    totpEnabled: Boolean(row.totp_enabled),
-    loginAttempts: Number(row.login_attempts),
-    blockedUntil: row.blocked_until,
-    createdAt: row.created_at,
-  });
+  try {
+    return new User({
+      id: Number(row.id),
+      name: row.name,
+      apellidoPaterno: row.apellido_paterno,
+      apellidoMaterno: row.apellido_materno,
+      nombres: row.nombres,
+      direccion: row.direccion,
+      email: row.email,
+      backupEmail: row.backup_email,
+      dni: row.dni,
+      phone: row.phone,
+      whatsapp: row.whatsapp,
+      passwordHash: row.password_hash,
+      role: row.role,
+      state: row.state,
+      emailVerified: Boolean(row.email_verified),
+      totpSecret: row.totp_secret,
+      totpEnabled: Boolean(row.totp_enabled),
+      loginAttempts: Number(row.login_attempts),
+      blockedUntil: row.blocked_until,
+      createdAt: row.created_at,
+    });
+  } catch {
+    const id = Number(row.id);
+    return {
+      id,
+      toPublicJSON() {
+        return {
+          id,
+          name: row.name,
+          apellidoPaterno: row.apellido_paterno,
+          apellidoMaterno: row.apellido_materno,
+          nombres: row.nombres,
+          direccion: row.direccion,
+          email: row.email,
+          backupEmail: row.backup_email || null,
+          role: row.role,
+          state: row.state,
+          dni: row.dni,
+          phone: row.phone || null,
+          emailVerified: Boolean(row.email_verified),
+          totpEnabled: Boolean(row.totp_enabled),
+          createdAt: row.created_at,
+        };
+      },
+    };
+  }
 }
 
 export const UserRepository = {
