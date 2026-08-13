@@ -6,7 +6,7 @@
 
 import { AccountRepository } from '../repositories/AccountRepository.js';
 import { aplicarRentabilidadDiaria } from '../../application/use-cases/aplicarRentabilidadDiaria.js';
-import { config } from '../../config.js';
+import { config } from '../config.js';
 
 let ultimoDia = null;
 
