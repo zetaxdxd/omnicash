@@ -893,53 +893,29 @@ function configurarAdmin() {
     });
   });
 
-  cargarYapePendientes();
+  cargarYapeReporte();
 }
 
-/** Carga las solicitudes Yape pendientes (admin) */
-async function cargarYapePendientes() {
+/** Carga el reporte de depósitos Yape (admin, solo lectura) */
+async function cargarYapeReporte() {
   try {
-    const data = await peticion('/admin/yape/pendientes');
+    const data = await peticion('/admin/yape/depositos');
     $('yapePendientesBody').innerHTML = data.depositos.map(d => `
       <tr>
         <td>#${d.id}</td>
-        <td>${d.clienteNombre}</td>
-        <td>${d.clienteDni}</td>
+        <td>${d.clienteNombre ?? '—'}</td>
+        <td>${d.clienteDni ?? '—'}</td>
         <td><strong>${formatoCreditos(d.amount)}</strong></td>
         <td>${d.payerPhone || '—'}</td>
         <td>${d.operacion || '—'}</td>
+        <td><span class="badge ${d.state.toLowerCase()}">${d.state}</span></td>
         <td>${formatoFecha(d.createdAt)}</td>
-        <td>
-          <button class="btn-small" onclick="resolverYape(${d.id}, 'ACREDITAR')">Acreditar</button>
-          <button class="btn-small rojo" onclick="resolverYape(${d.id}, 'RECHAZAR')">Rechazar</button>
-        </td>
       </tr>
-    `).join('') || '<tr><td colspan="8">Sin solicitudes pendientes</td></tr>';
+    `).join('') || '<tr><td colspan="8">Sin depósitos registrados</td></tr>';
   } catch (err) {
     $('yapePendientesBody').innerHTML = `<tr><td colspan="8">${err.message}</td></tr>`;
   }
 }
-
-/**
- * Confirma o rechaza un depósito Yape (función global usada en la tabla).
- * Doble verificación: contraseña del admin + código OTP enviado a su correo.
- */
-window.resolverYape = async (id, accion) => {
-  const password = prompt('Ingrese su contraseña de administrador:');
-  if (!password) return;
-  try {
-    const paso1 = await peticion(`/admin/yape/${id}/autorizar`, 'POST', { password });
-    const codigo = prompt(`Revise su correo (${paso1.correo}). Ingrese el código de 6 dígitos:`);
-    if (!codigo) return;
-    const paso2 = await peticion(`/admin/yape/${id}/finalizar`, 'POST', { codigo: codigo.trim(), accion });
-    $('yapeAdminMsg').textContent = `${paso2.mensaje}`;
-    $('yapeAdminMsg').style.color = 'var(--verde)';
-    cargarYapePendientes();
-  } catch (err) {
-    $('yapeAdminMsg').textContent = `${err.message}`;
-    $('yapeAdminMsg').style.color = 'var(--rojo)';
-  }
-};
 
 /** Bloquea o activa un cliente (función global usada en la tabla) */
 window.cambiarEstado = async (id, estado) => {
@@ -982,7 +958,7 @@ async function refrescarDatosAutomatico() {
     } else if (usuario.role === 'TRABAJADOR') {
       await cargarClientes();
     } else if (usuario.role === 'ADMIN') {
-      await Promise.all([cargarDashboardAdmin(), cargarYapePendientes()]);
+      await Promise.all([cargarDashboardAdmin(), cargarYapeReporte()]);
     }
   } catch { /* el error ya se muestra en cada vista */ }
   refrescoEnCurso = false;

@@ -98,6 +98,17 @@ export const YapeDepositRepository = {
     return filas.map(conAlias);
   },
 
+  /** Últimos depósitos (todos los estados) para el reporte del admin */
+  async listarRecientes(limite = 50) {
+    const db = await getDb();
+    const filas = await db.prepare(`
+      SELECT d.*, u.name AS cliente_nombre, u.dni AS cliente_dni, u.email AS cliente_email
+      FROM yape_deposits d JOIN users u ON u.id = d.user_id
+      ORDER BY d.id DESC LIMIT ?
+    `).all(limite);
+    return filas.map(conAlias);
+  },
+
   /** Suma de monto ACREDITADO desde una fecha (para tope diario) */
   async sumAcreditadosDesde(accountId, desde) {
     const db = await getDb();

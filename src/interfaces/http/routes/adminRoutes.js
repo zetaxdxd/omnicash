@@ -15,9 +15,7 @@ import {
   crearEmpleado,
   eliminar,
   listarClientes,
-  yapePendientes,
-  yapeAutorizar,
-  yapeFinalizar,
+  yapeDepositos,
   completarRetiroRedCajeroAdmin,
   listarRetirosPendientesAdmin,
 } from '../controllers/adminController.js';
@@ -61,26 +59,9 @@ adminRoutes.delete('/usuarios/:id', proteger('ADMIN'), exigirReauth, eliminar);
 // GET /api/admin/clientes — soporte (admin y trabajador)
 adminRoutes.get('/clientes', proteger('ADMIN', 'TRABAJADOR'), listarClientes);
 
-// ----- Depósitos Yape (dinero real): solo ADMIN -----
-// GET /api/admin/yape/pendientes — solicitudes por confirmar
-adminRoutes.get('/yape/pendientes', proteger('ADMIN'), yapePendientes);
-
-// POST /api/admin/yape/:id/autorizar — paso 1: contraseña del admin → envía OTP al correo
-adminRoutes.post('/yape/:id/autorizar',
-  proteger('ADMIN'),
-  validarBody({ password: { required: true, type: 'string' } }),
-  yapeAutorizar
-);
-
-// POST /api/admin/yape/:id/finalizar — paso 2: OTP → ACREDITAR o RECHAZAR
-adminRoutes.post('/yape/:id/finalizar',
-  proteger('ADMIN'),
-  validarBody({
-    codigo: { required: true, type: 'string' },
-    accion: { required: true, type: 'string' },
-  }),
-  yapeFinalizar
-);
+// ----- Depósitos Yape (reporte, sin aprobación): solo ADMIN -----
+// GET /api/admin/yape/depositos — últimos depósitos (reporte de operaciones)
+adminRoutes.get('/yape/depositos', proteger('ADMIN'), yapeDepositos);
 
 // RETIRO SIN TARJERA RED (admin)
 adminRoutes.post('/cajero/retiro/:withdrawalId/completar',

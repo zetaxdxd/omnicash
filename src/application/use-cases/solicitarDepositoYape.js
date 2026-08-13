@@ -4,21 +4,25 @@
  *
  * El cliente pide cargar créditos: la app le indica a qué número Yape
  * del banco debe enviar el dinero (YAPE_MERCHANT_PHONE) y cuánto.
- * La solicitud queda PENDIENTE hasta que el administrador confirme
- * (en su Yape llegó el dinero) y la ACREDITE con contraseña + OTP.
+ * El depósito se ACREDITA DE INMEDIATO (el cliente confirma con su propia
+ * contraseña + OTP). El administrador NO aprueba: en producción habría
+ * demasiadas operaciones para dar click una por una, así que el saldo
+ * sube solo. El registro queda en auditoría para seguimiento.
  *
  * 1 sol Yape = 1 crédito. Topes: máximo por operación y acumulado diario.
  */
 
 import { AccountRepository } from '../../infrastructure/repositories/AccountRepository.js';
 import { YapeDepositRepository } from '../../infrastructure/repositories/YapeDepositRepository.js';
+import { TransactionRepository } from '../../infrastructure/repositories/TransactionRepository.js';
 import { AuditRepository } from '../../infrastructure/repositories/AuditRepository.js';
+import { Transaction, TRANSACTION_TYPES } from '../../domain/entities/Transaction.js';
 import { BusinessRuleViolationError } from '../../domain/errors/DomainError.js';
 import { config } from '../../infrastructure/config.js';
 
 /**
  * @param {object} input {userId, monto, payerPhone, operacion}
- * @returns {object} {referencia, monto, yapeCelular, yapeNombre, mensaje}
+ * @returns {object} {referencia, monto, yapeCelular, yapeNombre, estado, saldo, mensaje}
  */
 export async function solicitarDepositoYape({ userId, monto, payerPhone, operacion }) {
   const montoNum = Number(monto);
@@ -36,10 +40,10 @@ export async function solicitarDepositoYape({ userId, monto, payerPhone, operaci
   cuenta.ensureOperativa();
   cuenta.validarMonto(montoNum);
 
-  // 1. Solo una solicitud pendiente a la vez (evita spam y confusiones)
+  // 1. Solo una solicitud en curso a la vez (evita solapamientos)
   if (await YapeDepositRepository.countPendientes(userId) > 0) {
     throw new BusinessRuleViolationError(
-      'Ya tienes una solicitud pendiente de confirmación. Espera a que se confirme o rechace'
+      'Ya tienes una solicitud en curso. Espera a que se procese'
     );
   }
 
@@ -50,7 +54,7 @@ export async function solicitarDepositoYape({ userId, monto, payerPhone, operaci
     );
   }
 
-  // 3. Tope diario acumulado (solo lo ya acreditado: lo pendiente aún no es dinero real)
+  // 3. Tope diario acumulado (lo ya acreditado)
   const inicioDelDia = new Date();
   inicioDelDia.setHours(0, 0, 0, 0);
   const acreditadoHoy = await YapeDepositRepository.sumAcreditadosDesde(cuenta.id, inicioDelDia.toISOString());
@@ -84,10 +88,35 @@ export async function solicitarDepositoYape({ userId, monto, payerPhone, operaci
     operacion: aprobacion,
   });
 
+  // 6. Acreditación automática (sin aprobación del admin)
+  const acreditadoHoy2 = await YapeDepositRepository.sumAcreditadosDesde(cuenta.id, inicioDelDia.toISOString());
+  if (acreditadoHoy2 + montoNum > config.yapeDailyLimit) {
+    await YapeDepositRepository.resolver(depositado.id, YapeDepositRepository.STATES.RECHAZADO, null);
+    throw new BusinessRuleViolationError(
+      `Acreditar superaría el tope diario de ${config.yapeDailyLimit} soles`
+    );
+  }
+
+  cuenta.depositar(montoNum);
+  await AccountRepository.update(cuenta);
+
+  await TransactionRepository.insert(new Transaction({
+    accountId: cuenta.id,
+    type: TRANSACTION_TYPES.DEPOSITO_YAPE,
+    amount: montoNum,
+    description: `Yape real (ref. #${depositado.id}, op. ${aprobacion})`,
+  }));
+
+  const resuelto = await YapeDepositRepository.resolver(
+    depositado.id,
+    YapeDepositRepository.STATES.ACREDITADO,
+    null
+  );
+
   await AuditRepository.log({
     actorId: userId,
-    action: 'YAPE_SOLICITADO',
-    detail: `Solicitud de depósito Yape #${depositado.id} por ${montoNum} soles a la cuenta ${cuenta.cci}`,
+    action: 'YAPE_ACREDITADO',
+    detail: `Depósito Yape #${depositado.id} de ${montoNum} soles acreditado automáticamente`,
   });
 
   return {
@@ -95,7 +124,8 @@ export async function solicitarDepositoYape({ userId, monto, payerPhone, operaci
     monto: montoNum,
     yapeCelular: config.yapeMerchantPhone,
     yapeNombre: config.yapeMerchantName,
-    estado: YapeDepositRepository.STATES.PENDIENTE,
-    mensaje: `Envía ${montoNum} soles por Yape a ${config.yapeMerchantPhone} y guarda el código de aprobación que Yape te muestre`,
+    estado: YapeDepositRepository.STATES.ACREDITADO,
+    saldo: cuenta.balance,
+    mensaje: `Envía ${montoNum} soles por Yape a ${config.yapeMerchantPhone}. Tu saldo ya fue acreditado`,
   };
 }

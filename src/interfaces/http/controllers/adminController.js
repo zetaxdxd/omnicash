@@ -12,8 +12,6 @@ import { obtenerDashboardAdmin } from '../../../application/use-cases/obtenerDas
 import { obtenerAuditoria } from '../../../application/use-cases/obtenerAuditoria.js';
 import { cambiarEstadoUsuario, crearTrabajador, eliminarUsuario } from '../../../application/use-cases/gestionUsuarios.js';
 import { listarClientesParaTrabajador } from '../../../application/use-cases/panelTrabajador.js';
-import { autorizarDepositoYape, YAPE_CONFIRM_PURPOSE } from '../../../application/use-cases/autorizarDepositoYape.js';
-import { finalizarDepositoYape } from '../../../application/use-cases/finalizarDepositoYape.js';
 import { completarRetiroRedCajero } from '../../../application/use-cases/completarRetiroRedCajero.js';
 import { YapeDepositRepository } from '../../../infrastructure/repositories/YapeDepositRepository.js';
 
@@ -121,46 +119,12 @@ export async function listarRetirosPendientesAdmin(req, res, next) {
   }
 }
 
-// ---------------- Depósitos Yape (dinero real) ----------------
+// ---------------- Depósitos Yape (reporte, sin aprobación) ----------------
 
-/** GET /api/admin/yape/pendientes — solicitudes por confirmar (solo admin) */
-export async function yapePendientes(req, res, next) {
+/** GET /api/admin/yape/depositos — últimos depósitos para el reporte del admin */
+export async function yapeDepositos(req, res, next) {
   try {
-    res.json({ depositos: await YapeDepositRepository.listarPendientes() });
-  } catch (error) {
-    next(error);
-  }
-}
-
-/** POST /api/admin/yape/:id/autorizar — contraseña del admin y envía el OTP */
-export async function yapeAutorizar(req, res, next) {
-  try {
-    const { password } = req.body ?? {};
-    const resultado = await autorizarDepositoYape({
-      adminUserId: req.usuario.id,
-      depositId: Number(req.params.id),
-      password,
-    });
-    res.json({ mensaje: 'Revisa tu correo: te enviamos el código de confirmación', ...resultado });
-  } catch (error) {
-    next(error);
-  }
-}
-
-/** POST /api/admin/yape/:id/finalizar — valida el OTP y acredita o rechaza */
-export async function yapeFinalizar(req, res, next) {
-  try {
-    const { codigo, accion } = req.body ?? {};
-    const resultado = await finalizarDepositoYape({
-      adminUserId: req.usuario.id,
-      depositId: Number(req.params.id),
-      codigo,
-      accion,
-    });
-    const mensaje = resultado.estado === 'ACREDITADO'
-      ? 'Depósito acreditado: el saldo del cliente fue actualizado'
-      : 'Depósito rechazado';
-    res.json({ mensaje, ...resultado });
+    res.json({ depositos: await YapeDepositRepository.listarRecientes() });
   } catch (error) {
     next(error);
   }
