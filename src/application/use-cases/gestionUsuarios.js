@@ -11,6 +11,7 @@ import { ROLES } from '../../domain/entities/User.js';
 import { UserRepository } from '../../infrastructure/repositories/UserRepository.js';
 import { AccountRepository } from '../../infrastructure/repositories/AccountRepository.js';
 import { AuditRepository } from '../../infrastructure/repositories/AuditRepository.js';
+import { SessionRepository } from '../../infrastructure/repositories/SessionRepository.js';
 import { PasswordService } from '../../infrastructure/security/password.js';
 import { normalizarDni } from '../../infrastructure/security/peru.js';
 import { consultarDni, identidadCoincide } from '../../infrastructure/reniec/consultaDni.js';
@@ -169,6 +170,9 @@ export async function eliminarUsuario({ targetUserId, autorRole, autorId }) {
   }
 
   const rolLegible = usuario.role === ROLES.TRABAJADOR ? 'Trabajador' : 'Cliente';
+
+  // Borra primero las sesiones del usuario para no violar la FK sessions_user_id_fkey
+  await SessionRepository.eliminarPorUsuario(targetUserId);
 
   await UserRepository.remove(targetUserId);
 

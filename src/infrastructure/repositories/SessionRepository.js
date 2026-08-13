@@ -111,4 +111,10 @@ export const SessionRepository = {
     await db.prepare('DELETE FROM sessions WHERE expires_at < ? OR revoked_at IS NOT NULL')
       .run(new Date().toISOString());
   },
+
+  /** Elimina TODAS las sesiones de un usuario (al borrar la cuenta). */
+  async eliminarPorUsuario(userId) {
+    const db = await getDb();
+    await db.prepare('DELETE FROM sessions WHERE user_id = ?').run(Number(userId));
+  },
 };
