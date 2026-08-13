@@ -173,7 +173,7 @@ export async function sacarDeAlcancia(req, res, next) {
 }
 
 /** POST /api/cuenta/tanda — crear una nueva tanda */
-export async function crearTandaCtrl(req, res, next) {
+export async function crearTanda(req, res, next) {
   try {
     const { nombre, pozoInicial } = req.body ?? {};
     if (!nombre || !pozoInicial) return res.status(400).json({ error: 'Faltan nombre o pozoInicial' });
@@ -185,7 +185,7 @@ export async function crearTandaCtrl(req, res, next) {
 }
 
 /** POST /api/cuenta/tanda/unirse — unirse a una tanda */
-export async function unirseTandaCtrl(req, res, next) {
+export async function unirseTanda(req, res, next) {
   try {
     const { tandaId } = req.body ?? {};
     if (!tandaId) return res.status(400).json({ error: 'Faltan tandaId' });
@@ -197,7 +197,7 @@ export async function unirseTandaCtrl(req, res, next) {
 }
 
 /** POST /api/cuenta/tanda/iniciar-ciclo — iniciar el ciclo de la tanda */
-export async function iniciarCicloTandaCtrl(req, res, next) {
+export async function iniciarCicloTanda(req, res, next) {
   try {
     const { tandaId } = req.body ?? {};
     if (!tandaId) return res.status(400).json({ error: 'Faltan tandaId' });
