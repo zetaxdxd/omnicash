@@ -17,7 +17,7 @@ import { obtenerPago } from '../../../infrastructure/mercadopago/mp.js';
 import { YapeDepositRepository } from '../../../infrastructure/repositories/YapeDepositRepository.js';
 import { AtmRepository } from '../../../infrastructure/repositories/AtmRepository.js';
 import { solicitarRetiroRedCajero as solicitarRetiroRedCajeroUseCase } from '../../../application/use-cases/solicitarRetiroRedCajero.js';
-import { iniciarCicloTanda, unirseTanda, crearTanda } from '../../../application/use-cases/tanda.js';
+import { iniciarCicloTanda as iniciarCicloTandaUseCase, unirseTanda as unirseTandaUseCase, crearTanda as crearTandaUseCase } from '../../../application/use-cases/tanda.js';
 
 /** GET /api/cuenta — resumen de la cuenta del cliente autenticado */
 export async function verMiCuenta(req, res, next) {
@@ -173,11 +173,11 @@ export async function sacarDeAlcancia(req, res, next) {
 }
 
 /** POST /api/cuenta/tanda — crear una nueva tanda */
-export async function crearTanda(req, res, next) {
+export async function crearTandaCtrl(req, res, next) {
   try {
     const { nombre, pozoInicial } = req.body ?? {};
     if (!nombre || !pozoInicial) return res.status(400).json({ error: 'Faltan nombre o pozoInicial' });
-    const resultado = await crearTanda({ userId: req.usuario.id, nombre, pozoInicial });
+    const resultado = await crearTandaUseCase({ userId: req.usuario.id, nombre, pozoInicial });
     res.status(201).json({ mensaje: 'Tanda creada', ...resultado });
   } catch (error) {
     next(error);
@@ -185,11 +185,11 @@ export async function crearTanda(req, res, next) {
 }
 
 /** POST /api/cuenta/tanda/unirse — unirse a una tanda */
-export async function unirseTanda(req, res, next) {
+export async function unirseTandaCtrl(req, res, next) {
   try {
     const { tandaId } = req.body ?? {};
     if (!tandaId) return res.status(400).json({ error: 'Faltan tandaId' });
-    const resultado = await unirseTanda({ userId: req.usuario.id, tandaId: Number(tandaId) });
+    const resultado = await unirseTandaUseCase({ userId: req.usuario.id, tandaId: Number(tandaId) });
     res.json({ mensaje: 'Te has unido a la tanda', ...resultado });
   } catch (error) {
     next(error);
@@ -197,11 +197,11 @@ export async function unirseTanda(req, res, next) {
 }
 
 /** POST /api/cuenta/tanda/iniciar-ciclo — iniciar el ciclo de la tanda */
-export async function iniciarCicloTanda(req, res, next) {
+export async function iniciarCicloTandaCtrl(req, res, next) {
   try {
     const { tandaId } = req.body ?? {};
     if (!tandaId) return res.status(400).json({ error: 'Faltan tandaId' });
-    const resultado = await iniciarCicloTanda({ tandaId: Number(tandaId), userId: req.usuario.id });
+    const resultado = await iniciarCicloTandaUseCase({ tandaId: Number(tandaId), userId: req.usuario.id });
     res.json({ mensaje: 'Ciclo de tanda iniciado', ...resultado });
   } catch (error) {
     next(error);
