@@ -105,7 +105,20 @@ CREATE TABLE IF NOT EXISTS yape_deposits (
   state        TEXT    NOT NULL DEFAULT 'PENDIENTE',
   confirmed_by INTEGER REFERENCES users(id),
   confirmed_at TEXT,
-  created_at   TEXT    NOT NULL
+  created_at  TEXT    NOT NULL
+);
+
+-- Recargas por Yape vía Culqi (billeteras móviles). Nace PENDIENTE y pasa
+-- a ACREDITADO/RECHAZADO cuando Culqi confirma el pago por webhook.
+CREATE TABLE IF NOT EXISTS recarga_culqi (
+  id             INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id        INTEGER NOT NULL REFERENCES users(id),
+  account_id     INTEGER NOT NULL REFERENCES accounts(id),
+  amount         REAL    NOT NULL,
+  culqi_order_id TEXT    NOT NULL DEFAULT '',
+  state          TEXT    NOT NULL DEFAULT 'PENDIENTE',
+  confirmed_at   TEXT,
+  created_at     TEXT    NOT NULL
 );
 
 -- Red de cajeros aliados (retiro sin tarjeta con código de un solo uso)
@@ -193,6 +206,9 @@ CREATE INDEX IF NOT EXISTS idx_codes_email     ON verification_codes(email);
 CREATE INDEX IF NOT EXISTS idx_yape_state      ON yape_deposits(state);
 CREATE INDEX IF NOT EXISTS idx_yape_user       ON yape_deposits(user_id);
 CREATE INDEX IF NOT EXISTS idx_yape_external_ref ON yape_deposits(external_ref);
+CREATE INDEX IF NOT EXISTS idx_recarga_culqi_user  ON recarga_culqi(user_id);
+CREATE INDEX IF NOT EXISTS idx_recarga_culqi_order ON recarga_culqi(culqi_order_id);
+CREATE INDEX IF NOT EXISTS idx_recarga_culqi_state ON recarga_culqi(state);
 CREATE INDEX IF NOT EXISTS idx_atm_user        ON atm_withdrawals(user_id);
 CREATE INDEX IF NOT EXISTS idx_atm_state       ON atm_withdrawals(state);
 CREATE INDEX IF NOT EXISTS idx_accruals_account ON interest_accruals(account_id);
@@ -300,6 +316,17 @@ export const SCHEMA_POSTGRES = [
   created_at   TEXT      NOT NULL
 )`,
 
+  `CREATE TABLE IF NOT EXISTS recarga_culqi (
+  id             BIGSERIAL PRIMARY KEY,
+  user_id        BIGINT    NOT NULL REFERENCES users(id),
+  account_id     BIGINT    NOT NULL REFERENCES accounts(id),
+  amount         DOUBLE PRECISION NOT NULL,
+  culqi_order_id TEXT      NOT NULL DEFAULT '',
+  state          TEXT      NOT NULL DEFAULT 'PENDIENTE',
+  confirmed_at   TIMESTAMPTZ,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)`,
+
   `CREATE TABLE IF NOT EXISTS atm_network (
   id          BIGSERIAL PRIMARY KEY,
   codigo      TEXT      NOT NULL UNIQUE,
@@ -385,6 +412,9 @@ export const SCHEMA_POSTGRES = [
 `CREATE INDEX IF NOT EXISTS idx_yape_state      ON yape_deposits(state)`,
   `CREATE INDEX IF NOT EXISTS idx_yape_user       ON yape_deposits(user_id)`,
   `CREATE INDEX IF NOT EXISTS idx_yape_external_ref ON yape_deposits(external_ref)`,
+  `CREATE INDEX IF NOT EXISTS idx_recarga_culqi_user  ON recarga_culqi(user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_recarga_culqi_order ON recarga_culqi(culqi_order_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_recarga_culqi_state ON recarga_culqi(state)`,
   `CREATE INDEX IF NOT EXISTS idx_atm_user        ON atm_withdrawals(user_id)`,
   `CREATE INDEX IF NOT EXISTS idx_atm_state       ON atm_withdrawals(state)`,
   `CREATE INDEX IF NOT EXISTS idx_accruals_account ON interest_accruals(account_id)`,

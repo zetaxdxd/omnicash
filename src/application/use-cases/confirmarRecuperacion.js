@@ -2,12 +2,12 @@
  * OmniCash - Aplicación
  * Caso de uso: Confirmar recuperación de contraseña (paso 2).
  *
- * El cliente recibe el OTP en su CORREO DE RESPALDO (verificado en
- * solicitarRecuperacion). Si el código es válido, se le permite elegir
- * una nueva contraseña:
+ * El cliente recibe el OTP en su CORREO PRINCIPAL (verificado en
+ * solicitarRecuperacion y verificarRecuperacion). Si el código es válido,
+ * se le permite elegir una nueva contraseña:
  * - Las sesiones en todos sus dispositivos se cierran.
  * - Si tenía intentos fallidos, se limpian para que pueda volver a entrar.
- * - Se le envía una alerta a su correo PRINCIPAL para saber que la
+ * - Se le envía una alerta a su correo principal para saber que la
  *   contraseña cambió.
  */
 
@@ -23,24 +23,24 @@ import { enviarAlertaContrasenaCambiada } from '../../infrastructure/email/email
 import { PASSWORD_RECOVERY_PURPOSE } from './solicitarRecuperacion.js';
 
 /**
- * Paso 2: valida el OTP del correo de respaldo y aplica la nueva contraseña.
- * @param {object} input {dni, backupEmail, codigo, nuevaPassword}
+ * Paso 2: valida el OTP del correo principal y aplica la nueva contraseña.
+ * @param {object} input {dni, email, codigo, nuevaPassword}
  * @returns {object} {ok: true}
  */
-export async function confirmarRecuperacion({ dni, backupEmail, codigo, nuevaPassword }) {
+export async function confirmarRecuperacion({ dni, email, codigo, nuevaPassword }) {
   const dniNormalizado = normalizarDni(dni) ?? String(dni ?? '').trim();
-  const respaldoNormalizado = String(backupEmail ?? '').trim().toLowerCase();
+  const emailNormalizado = String(email ?? '').trim().toLowerCase();
   const claveNueva = String(nuevaPassword ?? '');
 
   const usuario = await UserRepository.findByDni(dniNormalizado);
-  if (!usuario || !usuario.backupEmail || usuario.backupEmail !== respaldoNormalizado) {
+  if (!usuario || usuario.email !== emailNormalizado) {
     throw new BusinessRuleViolationError(
       'No podemos verificar tus datos. Solicita el código nuevamente'
     );
   }
 
-  // 1. El OTP debe haberse enviado al correo de respaldo y estar vigente
-  const fila = await VerificationCodeRepository.findLatest(respaldoNormalizado, PASSWORD_RECOVERY_PURPOSE);
+  // 1. El OTP debe haberse enviado al correo principal y estar vigente
+  const fila = await VerificationCodeRepository.findLatest(emailNormalizado, PASSWORD_RECOVERY_PURPOSE);
   if (!codigoVigente(fila)) {
     throw new ForbiddenError(
       fila && fila.attempts >= OTP_MAX_ATTEMPTS
@@ -53,7 +53,7 @@ export async function confirmarRecuperacion({ dni, backupEmail, codigo, nuevaPas
     throw new BusinessRuleViolationError('El código ingresado es incorrecto');
   }
   await VerificationCodeRepository.marcarUsado(fila.id);
-  await VerificationCodeRepository.invalidarActivos(respaldoNormalizado, PASSWORD_RECOVERY_PURPOSE);
+  await VerificationCodeRepository.invalidarActivos(emailNormalizado, PASSWORD_RECOVERY_PURPOSE);
 
   // 2. La nueva contraseña debe cumplir la política de seguridad
   if (claveNueva.length === 0) {
@@ -74,7 +74,7 @@ export async function confirmarRecuperacion({ dni, backupEmail, codigo, nuevaPas
   await AuditRepository.log({
     actorId: usuario.id,
     action: 'CONTRASENA_RECUPERADA',
-    detail: 'La contraseña fue restablecida mediante el código enviado al correo de respaldo',
+    detail: 'La contraseña fue restablecida mediante el código enviado al correo principal',
   });
 
   // 4. Alerta al correo principal

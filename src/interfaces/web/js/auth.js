@@ -23,7 +23,10 @@ function mostrarFormulario(visible, ocultos) {
 }
 
 // ---------- Cambio entre login y registro (enlace inferior) ----------
-const TODOS_FORMULARIOS = ['loginForm', 'registerForm', 'otpForm', 'faForm', 'recoverForm', 'recoverConfirmForm'];
+const TODOS_FORMULARIOS = ['loginForm', 'registerForm', 'otpForm', 'faForm', 'recoverForm', 'recoverCodeForm', 'recoverConfirmForm'];
+
+// Guarda el código ya verificado para usarlo en el paso final (sin reescribirlo)
+let codigoRecuperacion = '';
 
 /** Sincroniza el enlace inferior con el formulario visible */
 function sincronizarTabs() {
@@ -54,36 +57,65 @@ $('switchLink').addEventListener('click', (e) => {
 // ---------- Recuperación de contraseña ----------
 $('lnkRecuperar').addEventListener('click', (e) => {
   e.preventDefault();
+  codigoRecuperacion = '';
   mostrarFormulario($('recoverForm'),
-    [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverConfirmForm')]);
+    [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverCodeForm'), $('recoverConfirmForm')]);
 });
 
 $('btnRecoverCancel').addEventListener('click', () => {
+  codigoRecuperacion = '';
   mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
   sincronizarTabs();
 });
 
-// Paso 1: solicitar el código al correo de respaldo
+// Paso 1: solicitar el código al correo principal
 $('recoverForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   mostrarMsg('Verificando sus datos...', 'ok');
   try {
     const data = await peticion('/auth/recuperar', {
       dni: $('recDni').value.trim(),
-      backupEmail: $('recBackupEmail').value.trim(),
+      email: $('recEmail').value.trim(),
     });
-    $('recCodigo').value = '';
+    codigoRecuperacion = '';
+    $('recCodigoVerif').value = '';
     $('recPassword').value = '';
     $('recPassword2').value = '';
-    mostrarFormulario($('recoverConfirmForm'),
-      [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm')]);
+    mostrarFormulario($('recoverCodeForm'),
+      [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverConfirmForm')]);
     mostrarMsg(`Si los datos coinciden, enviamos el código a ${data.correoEnmascarado}`, 'ok');
   } catch (err) {
     mostrarMsg(err.message);
   }
 });
 
-// Paso 2: código del respaldo + nueva contraseña
+// Paso 1.5: verificar el código recibido (sin cambiar la clave aún)
+$('recoverCodeForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  mostrarMsg('Verificando el código...', 'ok');
+  try {
+    const data = await peticion('/auth/recuperar/verificar-codigo', {
+      dni: $('recDni').value.trim(),
+      email: $('recEmail').value.trim(),
+      codigo: $('recCodigoVerif').value.trim(),
+    });
+    codigoRecuperacion = $('recCodigoVerif').value.trim();
+    $('recCodigoVerif').value = '';
+    mostrarFormulario($('recoverConfirmForm'),
+      [$('loginForm'), $('registerForm'), $('otpForm'), $('faForm'), $('recoverForm'), $('recoverCodeForm')]);
+    mostrarMsg(data.mensaje || 'Código verificado. Crea tu nueva contraseña.', 'ok');
+  } catch (err) {
+    mostrarMsg(err.message);
+  }
+});
+
+$('btnRecoverCodeCancel').addEventListener('click', () => {
+  codigoRecuperacion = '';
+  mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
+  sincronizarTabs();
+});
+
+// Paso 2: nueva contraseña (el código ya fue verificado)
 $('recoverConfirmForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const clave = $('recPassword').value;
@@ -92,14 +124,19 @@ $('recoverConfirmForm').addEventListener('submit', async (e) => {
     mostrarMsg('Las contraseñas no coinciden. Revísalas', 'error');
     return;
   }
+  if (!codigoRecuperacion) {
+    mostrarMsg('Vuelve a verificar tu código antes de crear la contraseña', 'error');
+    return;
+  }
   mostrarMsg('Restableciendo su contraseña...', 'ok');
   try {
     await peticion('/auth/recuperar/confirmar', {
       dni: $('recDni').value.trim(),
-      backupEmail: $('recBackupEmail').value.trim(),
-      codigo: $('recCodigo').value.trim(),
+      email: $('recEmail').value.trim(),
+      codigo: codigoRecuperacion,
       nuevaPassword: clave,
     });
+    codigoRecuperacion = '';
     mostrarMsg('Contraseña restablecida. Inicia sesión con la nueva.', 'ok');
     $('loginEmail').value = '';
     $('loginPassword').value = '';
@@ -111,6 +148,7 @@ $('recoverConfirmForm').addEventListener('submit', async (e) => {
 });
 
 $('btnRecoverConfirmCancel').addEventListener('click', () => {
+  codigoRecuperacion = '';
   mostrarFormulario($('loginForm'), TODOS_FORMULARIOS.map($));
   sincronizarTabs();
 });

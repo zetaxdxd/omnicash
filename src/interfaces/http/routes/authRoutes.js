@@ -9,7 +9,7 @@ import {
   reauth, reauthIniciar,
   iniciar2faHandler, confirmar2faHandler, desactivar2faHandler,
   misSesiones, revocarUnaSesion, cerrarSesiones,
-  recuperar, confirmarRecuperacionHandler,
+  recuperar, verificarRecuperacionHandler, confirmarRecuperacionHandler,
   solicitarCambioIdentidadHandler, aplicarCambioIdentidadHandler,
   cambiarContrasenaHandler,
   consultarDniHandler, soporteHandler,
@@ -83,20 +83,30 @@ authRoutes.post('/2fa/desactivar', autenticar,
 );
 
 // ----- Recuperación de contraseña (sin sesión) -----
-// Paso 1: DNI + correo de respaldo → OTP al correo de respaldo
+// Paso 1: DNI + correo principal → OTP al correo principal
 authRoutes.post('/recuperar',
   validarBody({
     dni: { required: true, type: 'string' },
-    backupEmail: { required: true, type: 'string' },
+    email: { required: true, type: 'string' },
   }),
   recuperar
 );
 
-// Paso 2: OTP del correo de respaldo + nueva contraseña
+// Paso 1.5: valida el OTP sin cambiar la contraseña
+authRoutes.post('/recuperar/verificar-codigo',
+  validarBody({
+    dni: { required: true, type: 'string' },
+    email: { required: true, type: 'string' },
+    codigo: { required: true, type: 'string' },
+  }),
+  verificarRecuperacionHandler
+);
+
+// Paso 2: OTP verificado + nueva contraseña
 authRoutes.post('/recuperar/confirmar',
   validarBody({
     dni: { required: true, type: 'string' },
-    backupEmail: { required: true, type: 'string' },
+    email: { required: true, type: 'string' },
     codigo: { required: true, type: 'string' },
     nuevaPassword: { required: true, type: 'string' },
   }),

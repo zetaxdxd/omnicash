@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { authRoutes } from './routes/authRoutes.js';
 import { cuentaRoutes } from './routes/cuentaRoutes.js';
 import { adminRoutes } from './routes/adminRoutes.js';
-import { webhookMercadoPago } from './controllers/cuentaController.js';
+import { webhookMercadoPago, webhookCulqi } from './controllers/cuentaController.js';
 import { rutaNoEncontrada, manejadorDeErrores } from './middlewares/errores.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -43,6 +43,13 @@ export function createApp() {
   // Webhook público de Mercado Pago (notifica los pagos de las recargas QR).
   // El servidor verifica cada pago consultando la API de Mercado Pago.
   app.post('/api/webhooks/mercadopago', express.json({ limit: '1mb' }), webhookMercadoPago);
+
+  // Webhook público de Culqi (notifica los pagos con Yape vía Órdenes).
+  // Capturamos el body crudo para verificar la firma.
+  app.post('/api/webhooks/culqi',
+    express.json({ limit: '1mb', verify: (req, res, buf) => { req.rawBody = buf; } }),
+    webhookCulqi
+  );
 
   // Health check para monitoreo
   app.get('/api/health', (req, res) => res.json({

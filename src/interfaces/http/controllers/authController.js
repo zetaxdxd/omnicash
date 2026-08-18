@@ -14,6 +14,7 @@ import { verificarSegundoFactor } from '../../../application/use-cases/verificar
 import { reautenticar, solicitarAprobacion } from '../../../application/use-cases/reautenticar.js';
 import { solicitarRecuperacion } from '../../../application/use-cases/solicitarRecuperacion.js';
 import { confirmarRecuperacion } from '../../../application/use-cases/confirmarRecuperacion.js';
+import { verificarRecuperacion } from '../../../application/use-cases/verificarRecuperacion.js';
 import { solicitarCambioIdentidad } from '../../../application/use-cases/solicitarCambioIdentidad.js';
 import { aplicarCambioIdentidad } from '../../../application/use-cases/aplicarCambioIdentidad.js';
 import { cambiarContrasena } from '../../../application/use-cases/cambiarContrasena.js';
@@ -140,13 +141,13 @@ export function yo(req, res) {
 
 // ---------------- Recuperación de contraseña (público) ----------------
 
-/** POST /api/auth/recuperar — paso 1: DNI + correo de respaldo, envía OTP al respaldo */
+/** POST /api/auth/recuperar — paso 1: DNI + correo principal, envía OTP al correo */
 export async function recuperar(req, res, next) {
   try {
-    const { dni, backupEmail } = req.body ?? {};
-    const resultado = await solicitarRecuperacion({ dni, backupEmail });
+    const { dni, email } = req.body ?? {};
+    const resultado = await solicitarRecuperacion({ dni, email });
     res.json({
-      mensaje: 'Si los datos coinciden, enviamos un código a tu correo de respaldo',
+      mensaje: 'Si los datos coinciden, enviamos un código a tu correo',
       ...resultado,
     });
   } catch (error) {
@@ -154,11 +155,25 @@ export async function recuperar(req, res, next) {
   }
 }
 
-/** POST /api/auth/recuperar/confirmar — paso 2: OTP del respaldo + nueva contraseña */
+/** POST /api/auth/recuperar/verificar-codigo — paso 1.5: valida el OTP sin cambiar la clave */
+export async function verificarRecuperacionHandler(req, res, next) {
+  try {
+    const { dni, email, codigo } = req.body ?? {};
+    const resultado = await verificarRecuperacion({ dni, email, codigo });
+    res.json({
+      mensaje: 'Código verificado. Ahora puedes crear tu nueva contraseña',
+      ...resultado,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/auth/recuperar/confirmar — paso 2: OTP verificado + nueva contraseña */
 export async function confirmarRecuperacionHandler(req, res, next) {
   try {
-    const { dni, backupEmail, codigo, nuevaPassword } = req.body ?? {};
-    const resultado = await confirmarRecuperacion({ dni, backupEmail, codigo, nuevaPassword });
+    const { dni, email, codigo, nuevaPassword } = req.body ?? {};
+    const resultado = await confirmarRecuperacion({ dni, email, codigo, nuevaPassword });
     res.json({
       mensaje: 'Contraseña restablecida. Inicia sesión con tu nueva contraseña',
       ...resultado,

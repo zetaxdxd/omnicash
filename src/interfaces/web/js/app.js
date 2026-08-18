@@ -578,6 +578,91 @@ function configurarOperacionesCliente() {
       }
     });
   });
+
+  // Recarga por QR escaneable de Yape vía Culqi (Billeteras móviles)
+  let culqiPoll = null;
+  let culqiTimer = null;
+
+  async function cargarCulqiConfig() {
+    try { return await peticion('/cuenta/culqi-config'); } catch { return { habilitado: false, publicKey: null }; }
+  }
+  function cargarScriptCulqi() {
+    return new Promise((resolve, reject) => {
+      if (window.Culqi || window.CulqiCheckout) return resolve();
+      const s = document.createElement('script');
+      s.src = 'https://checkout.culqi.com/js/v4';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('No se pudo cargar Culqi Checkout'));
+      document.head.appendChild(s);
+    });
+  }
+
+  $('culqiForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const cfg = await cargarCulqiConfig();
+    if (!cfg.habilitado) {
+      $('culqiEstado').textContent = 'El banco aún no activa Culqi. Usa los otros métodos de arriba.';
+      $('culqiEstado').style.color = 'var(--rojo)';
+      return;
+    }
+    await conReauth('Recarga con Yape (Culqi).', async (rt) => {
+      $('culqiEstado').textContent = 'Generando tu QR...';
+      $('culqiZona').classList.remove('hidden');
+      try {
+        const data = await peticion('/cuenta/recarga-culqi', 'POST', { monto: Number($('culqiMonto').value) }, rt);
+        await cargarScriptCulqi();
+        const settings = { title: 'Recarga OmniCash', currency: 'PEN', amount: Math.round(data.monto * 100), order: data.orderId };
+        const options = { lang: 'auto', modal: false, container: '#culqiCheckout', paymentMethods: { billetera: true }, paymentMethodsSort: ['billetera'] };
+        try {
+          if (!window.Culqi) throw new Error('Culqi Checkout no disponible');
+          window.Culqi.publicKey = cfg.publicKey;
+          window.Culqi.settings(settings);
+          window.Culqi.options(options);
+          window.Culqi.open();
+        } catch (err) {
+          $('culqiEstado').textContent = 'Abre el QR de Culqi en tu panel y escanea con Yape. (Detalle: ' + err.message + ')';
+          $('culqiEstado').style.color = 'var(--rojo)';
+        }
+
+        const ttl = Math.max(1, Math.round((data.ttlMs || 600000) / 1000));
+        let restante = ttl;
+        const pintar = () => { $('culqiEstado').textContent = `Escanea con Yape... (expira en ${restante}s)`; };
+        pintar();
+        clearInterval(culqiPoll); clearInterval(culqiTimer);
+        culqiPoll = setInterval(async () => {
+          try {
+            const estado = await peticion(`/cuenta/recarga-culqi/${data.referencia}`);
+            if (estado.estado === 'ACREDITADO') {
+              clearInterval(culqiPoll); clearInterval(culqiTimer);
+              $('culqiEstado').textContent = `¡Pago recibido! Se acreditaron S/ ${formatoCreditos(data.monto)}.`;
+              $('culqiEstado').style.color = 'var(--verde)';
+              $('culqiForm').reset();
+              cargarMiCuenta();
+            } else if (estado.estado === 'RECHAZADO') {
+              clearInterval(culqiPoll); clearInterval(culqiTimer);
+              $('culqiEstado').textContent = 'La recarga expiró o fue rechazada. Genera uno nuevo.';
+              $('culqiEstado').style.color = 'var(--rojo)';
+            }
+          } catch (err) {
+            if (err.message && err.message.includes('Sesión')) { clearInterval(culqiPoll); clearInterval(culqiTimer); }
+          }
+        }, 4000);
+        culqiTimer = setInterval(() => {
+          restante -= 1;
+          if (restante <= 0) {
+            clearInterval(culqiTimer); clearInterval(culqiPoll);
+            peticion(`/cuenta/recarga-culqi/${data.referencia}/expirar`, 'POST').catch(() => {});
+            $('culqiEstado').textContent = 'QR expirado. Genera uno nuevo.';
+            $('culqiEstado').style.color = 'var(--rojo)';
+          } else pintar();
+        }, 1000);
+      } catch (err) {
+        $('culqiEstado').textContent = `${err.message}`;
+        $('culqiEstado').style.color = 'var(--rojo)';
+      }
+    });
+  });
+
   cargarDepositosYape();
 }
 

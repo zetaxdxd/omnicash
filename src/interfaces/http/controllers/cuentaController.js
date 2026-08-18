@@ -13,6 +13,9 @@ import { transferir } from '../../../application/use-cases/transferir.js';
 import { depositar } from '../../../application/use-cases/depositar.js';
 import { solicitarDepositoYape } from '../../../application/use-cases/solicitarDepositoYape.js';
 import { solicitarRecargaQr, acreditarRecargaQr, expirarRecargaQr } from '../../../application/use-cases/recargaQr.js';
+import { solicitarRecargaCulqi, acreditarRecargaCulqi, expirarRecargaCulqi } from '../../../application/use-cases/recargaYapeCulqi.js';
+import { verificarFirmaCulqi } from '../../../infrastructure/culqi/culqi.js';
+import { RecargaCulqiRepository } from '../../../infrastructure/repositories/RecargaCulqiRepository.js';
 import { obtenerPago } from '../../../infrastructure/mercadopago/mp.js';
 import QRCode from 'qrcode';
 import { config } from '../../../infrastructure/config.js';
@@ -287,6 +290,78 @@ function verificarFirmaMP(req, paymentId) {
   const manifest = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
   const computed = crypto.createHmac('sha256', config.mpAccessToken).update(manifest).digest('hex');
   return { presente: true, valido: computed === hash };
+}
+
+/** GET /api/cuenta/culqi-config — expone la llave pública de Culqi al frontend */
+export async function culqiConfig(req, res, next) {
+  try {
+    res.json({ habilitado: !!config.culqiSecretKey, publicKey: config.culqiPublicKey || null });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/recarga-culqi — crea la orden Culqi y devuelve el orderId */
+export async function recargaCulqi(req, res, next) {
+  try {
+    const { monto } = req.body ?? {};
+    const resultado = await solicitarRecargaCulqi({ userId: req.usuario.id, monto });
+    res.status(201).json({ mensaje: 'Escanea el QR con tu Yape para pagar', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** GET /api/cuenta/recarga-culqi/:id — estado de una recarga Culqi */
+export async function estadoRecargaCulqi(req, res, next) {
+  try {
+    const dep = await RecargaCulqiRepository.findById(Number(req.params.id));
+    if (!dep || dep.userId !== req.usuario.id) {
+      return res.status(404).json({ error: 'Recarga no encontrada' });
+    }
+    res.json({ estado: dep.state, saldo: null });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/** POST /api/cuenta/recarga-culqi/:id/expirar — deshace el QR tras su temporizador */
+export async function vencerRecargaCulqi(req, res, next) {
+  try {
+    const resultado = await expirarRecargaCulqi({ userId: req.usuario.id, id: Number(req.params.id) });
+    res.json({ mensaje: 'Recarga expirada', ...resultado });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
+ * POST /api/webhooks/culqi — notificación de pago de Culqi (order.status.changed).
+ * Pública: re-consulta la orden a Culqi para verificarla (el body solo
+ * aporta el id/estado) y acredita la recarga automáticamente.
+ */
+export async function webhookCulqi(req, res, next) {
+  try {
+    const firma = verificarFirmaCulqi(req.rawBody ?? JSON.stringify(req.body), req.headers['x-culqi-signature']);
+    if (firma.presente && !firma.valido) {
+      console.warn('[Culqi] Webhook con firma inválida');
+    }
+
+    const payload = req.body ?? {};
+    const evento = payload.type || payload.event;
+    if (evento !== 'order.status.changed') return res.status(200).json({ ok: true });
+
+    const orden = payload.data?.object;
+    if (!orden?.id) return res.status(200).json({ ok: true });
+
+    if (orden.state === 'paid') {
+      await acreditarRecargaCulqi({ culqiOrderId: orden.id });
+    }
+    res.status(200).json({ ok: true });
+  } catch (error) {
+    // Siempre 200 para no reenviar; el error queda auditado
+    res.status(200).json({ ok: true, error: error.message });
+  }
 }
 
 /**

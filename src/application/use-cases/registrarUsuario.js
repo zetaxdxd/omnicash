@@ -64,9 +64,10 @@ export async function solicitarRegistro({ paterno, materno, nombres, dni, direcc
   if (!EMAIL_REGEX.test(emailNormalizado)) {
     throw new BusinessRuleViolationError('Correo electrónico inválido');
   }
-  if (!EMAIL_REGEX.test(respaldoNormalizado) || respaldoNormalizado === emailNormalizado) {
+  // El correo de respaldo es OPCIONAL; si se indica, debe ser válido y distinto al principal
+  if (respaldoNormalizado && (respaldoNormalizado === emailNormalizado || !EMAIL_REGEX.test(respaldoNormalizado))) {
     throw new BusinessRuleViolationError(
-      'El correo de respaldo es obligatorio y debe ser distinto al correo principal'
+      'El correo de respaldo debe ser distinto al correo principal'
     );
   }
   if (!PHONE_REGEX.test(String(phone ?? ''))) {

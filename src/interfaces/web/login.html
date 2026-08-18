@@ -91,28 +91,37 @@
       </p>
     </form>
 
-    <!-- Recuperación de contraseña con correo de respaldo -->
+    <!-- Recuperación de contraseña con correo principal -->
     <form id="recoverForm" class="auth-form hidden">
       <h2>Recuperación de contraseña</h2>
-      <p class="auth-hint">Ingrese su DNI y el <strong>correo de respaldo</strong> que registró.
-        Te enviaremos un código allí.</p>
+      <p class="auth-hint">Ingrese su DNI y el <strong>correo electrónico</strong> con el que se registró.
+        Le enviaremos un código de verificación allí.</p>
       <label>DNI
         <input type="text" id="recDni" placeholder="Ingrese su DNI" maxlength="9" required>
       </label>
-      <label>Correo de respaldo
-        <input type="email" id="recBackupEmail" placeholder="respaldo@ejemplo.com" required>
+      <label>Correo electrónico
+        <input type="email" id="recEmail" placeholder="correo@ejemplo.com" required>
       </label>
-      <button type="submit" class="btn-primary">Enviar código a mi respaldo</button>
+      <button type="submit" class="btn-primary">Enviar código a mi correo</button>
       <button type="button" id="btnRecoverCancel" class="btn-outline">Volver al inicio de sesión</button>
     </form>
 
-    <!-- Paso 2: código del respaldo + nueva contraseña -->
+    <!-- Paso 1.5: verificar el código recibido antes de crear la nueva clave -->
+    <form id="recoverCodeForm" class="auth-form hidden">
+      <h2>Verificar código</h2>
+      <p class="auth-hint">Ingrese el código de 6 dígitos que le enviamos a su correo.
+        Solo después de verificar el código podrá crear su nueva contraseña.</p>
+      <label>Código de verificación
+        <input type="text" id="recCodigoVerif" inputmode="numeric" maxlength="6" placeholder="000000" required>
+      </label>
+      <button type="submit" class="btn-primary">Verificar código</button>
+      <button type="button" id="btnRecoverCodeCancel" class="btn-outline">Volver al inicio de sesión</button>
+    </form>
+
+    <!-- Paso 2: nueva contraseña (el código ya fue verificado) -->
     <form id="recoverConfirmForm" class="auth-form hidden">
       <h2>Nueva contraseña</h2>
-      <p class="auth-hint">Ingrese el código que llegó a su correo de respaldo y elija su nueva contraseña.</p>
-      <label>Código de respaldo
-        <input type="text" id="recCodigo" inputmode="numeric" maxlength="6" placeholder="000000" required>
-      </label>
+      <p class="auth-hint">Código verificado. Elige tu nueva contraseña.</p>
       <label>Nueva contraseña (mín. 8: mayúscula, minúscula y número)
         <span class="password-wrap">
           <input type="password" id="recPassword" placeholder="••••••••" required>
@@ -170,8 +179,8 @@
       <label>Correo electrónico
         <input type="email" id="regEmail" placeholder="correo@ejemplo.com" required>
       </label>
-      <label>Correo de respaldo <span class="auth-hint-inline">(necesario para recuperar su cuenta si olvida la contraseña)</span>
-        <input type="email" id="regBackupEmail" placeholder="respaldo@ejemplo.com" required>
+      <label>Correo de respaldo <span class="auth-hint-inline">(opcional: le ayuda a recuperar su cuenta si olvida la contraseña)</span>
+        <input type="email" id="regBackupEmail" placeholder="respaldo@ejemplo.com">
       </label>
 
       <h3 class="field-group-title">Seguridad de acceso</h3>

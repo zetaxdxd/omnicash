@@ -7,7 +7,7 @@
  */
 
 import { Router } from 'express';
-import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape,   recargaQr, estadoRecargaQr, vencerRecargaQr, yapeComercio, solicitarRetiroRedCajero, listarCajerosAliados, historialRetirosCliente, rentabilidad, crearAlcancia, aportarAlcancia, sacarDeAlcancia, crearTanda, unirseTanda, iniciarCicloTanda } from '../controllers/cuentaController.js';
+import { verMiCuenta, retirar, transFerir, depositarP, depositarYape, misDepositosYape,   recargaQr, estadoRecargaQr, vencerRecargaQr, yapeComercio, solicitarRetiroRedCajero, listarCajerosAliados, historialRetirosCliente, rentabilidad, crearAlcancia, aportarAlcancia, sacarDeAlcancia, crearTanda, unirseTanda, iniciarCicloTanda, culqiConfig, recargaCulqi, estadoRecargaCulqi, vencerRecargaCulqi } from '../controllers/cuentaController.js';
 import { autenticar, proteger, exigirReauth } from '../middlewares/auth.js';
 import { validarBody } from '../middlewares/validacion.js';
 
@@ -75,6 +75,22 @@ cuentaRoutes.get('/recarga-qr/:id', estadoRecargaQr);
 
 // POST /api/cuenta/recarga-qr/:id/expirar — deshace el QR tras su temporizador
 cuentaRoutes.post('/recarga-qr/:id/expirar', vencerRecargaQr);
+
+// GET /api/cuenta/culqi-config — llave pública de Culqi para el frontend
+cuentaRoutes.get('/culqi-config', culqiConfig);
+
+// POST /api/cuenta/recarga-culqi — recarga de dinero real con QR de Yape (Culqi)
+cuentaRoutes.post('/recarga-culqi',
+  validarBody({ monto: { required: true, type: 'number', min: 0.01 } }),
+  exigirReauth,
+  recargaCulqi
+);
+
+// GET /api/cuenta/recarga-culqi/:id — estado de la recarga (polling del frontend)
+cuentaRoutes.get('/recarga-culqi/:id', estadoRecargaCulqi);
+
+// POST /api/cuenta/recarga-culqi/:id/expirar — deshace el QR tras su temporizador
+cuentaRoutes.post('/recarga-culqi/:id/expirar', vencerRecargaCulqi);
 
 // GET /api/cuenta/yape-comercio — datos y QR del Yape del banco (recarga manual)
 cuentaRoutes.get('/yape-comercio', yapeComercio);

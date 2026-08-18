@@ -112,6 +112,20 @@
             <button class="btn-primary" type="submit">Solicitar carga</button>
           </form>
           <p class="card-sub" id="yapeMsg"></p>
+
+          <div style="display:flex;align-items:center;gap:10px;margin:14px 0"><div style="flex:1;height:1px;background:#eee"></div><span class="card-sub" style="margin:0">o usa el QR que escanea tu app Yape (Culqi)</span><div style="flex:1;height:1px;background:#eee"></div></div>
+
+          <!-- Método escaneable: Yape vía Culqi (Billeteras móviles) -->
+          <h4>3. Yape escaneable (Culqi)</h4>
+          <p class="card-sub">Genera un QR que tu app Yape lee directamente. Escanéalo, paga el monto y el saldo se acredita solo.</p>
+          <form id="culqiForm">
+            <input type="number" id="culqiMonto" placeholder="Monto a recargar (S/ 6 - 500)" min="6" max="500" step="0.01" required>
+            <button class="btn-primary" type="submit">Mostrar QR Yape</button>
+          </form>
+          <div id="culqiZona" class="hidden" style="text-align:center;margin-top:10px">
+            <div id="culqiCheckout" style="min-height:340px;display:flex;align-items:center;justify-content:center"></div>
+            <p class="card-sub" id="culqiEstado">Escanea el QR con tu app Yape...</p>
+          </div>
           <div class="card" style="margin-top:8px">
             <h4>Solicitudes</h4>
             <table class="tabla">

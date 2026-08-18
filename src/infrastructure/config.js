@@ -81,6 +81,14 @@ export const config = {
   // NO es único: se rechaza solo a partir de la 4ª cuenta con el mismo correo)
   maxCuentasPorCorreo: Number(process.env.MAX_CUENTAS_POR_CORREO ?? 3),
 
+  // Culqi: recargas con Yape/Plin vía Órdenes de Pago (Billeteras móviles).
+  // CULQI_SECRET_KEY (sk_...) y CULQI_PUBLIC_KEY (pk_...) se obtienen en
+  // CulqiPanel. El QR escaneable lo renderiza Culqi Checkout en el frontend.
+  culqiSecretKey: process.env.CULQI_SECRET_KEY ?? '',
+  culqiPublicKey: process.env.CULQI_PUBLIC_KEY ?? '',
+  culqiWebhookSecret: process.env.CULQI_WEBHOOK_SECRET ?? '',
+  culqiOrderTtlMinutos: Number(process.env.CULQI_ORDER_TTL_MINUTOS ?? 10),
+
   // Mercado Pago: recargas de dinero real mediante QR (acepta pagos con Yape).
   // MP_ACCESS_TOKEN se obtiene en mercadopago.com.pe → Credenciales.
   mpAccessToken: process.env.MP_ACCESS_TOKEN ?? '',
